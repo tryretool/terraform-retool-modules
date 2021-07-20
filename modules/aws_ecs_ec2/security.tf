@@ -27,23 +27,29 @@ resource "aws_security_group" "alb" {
   description = "Retool load balancer security group"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description = "Global HTTP Inbound"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.alb_ingress_rules
+    content {
+      description      = ingress.value["description"]
+      from_port        = ingress.value["from_port"]
+      to_port          = ingress.value["to_port"]
+      protocol         = ingress.value["protocol"]
+      cidr_blocks      = ingress.value["cidr_blocks"]
+      ipv6_cidr_blocks = ingress.value["ipv6_cidr_blocks"]
+    }
   }
 
-  # Allow all outbound - modify if necessary
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-    ipv6_cidr_blocks = ["::/0"]
+  dynamic "egress" {
+    for_each = var.alb_egress_rules
+
+    content {
+      description      = egress.value["description"]
+      from_port        = egress.value["from_port"]
+      to_port          = egress.value["to_port"]
+      protocol         = egress.value["protocol"]
+      cidr_blocks      = egress.value["cidr_blocks"]
+      ipv6_cidr_blocks = egress.value["ipv6_cidr_blocks"]
+    }
   }
 }
 
@@ -52,41 +58,28 @@ resource "aws_security_group" "ec2" {
   description = "Retool EC2 security group"
   vpc_id      = var.vpc_id
 
-  # Allow all inbound - modify if necessary
-  ingress {
-    description = "Global HTTP Inbound"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.ec2_ingress_rules
+    content {
+      description      = ingress.value["description"]
+      from_port        = ingress.value["from_port"]
+      to_port          = ingress.value["to_port"]
+      protocol         = ingress.value["protocol"]
+      cidr_blocks      = ingress.value["cidr_blocks"]
+      ipv6_cidr_blocks = ingress.value["ipv6_cidr_blocks"]
+    }
   }
 
-  ingress {
-    description = "Global HTTPS Inbound"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-  }
+  dynamic "egress" {
+    for_each = var.ec2_egress_rules
 
-  ingress {
-    description = "Allow SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow all outbound - modify if necessary
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
-    ipv6_cidr_blocks = ["::/0"]
+    content {
+      description      = egress.value["description"]
+      from_port        = egress.value["from_port"]
+      to_port          = egress.value["to_port"]
+      protocol         = egress.value["protocol"]
+      cidr_blocks      = egress.value["cidr_blocks"]
+      ipv6_cidr_blocks = egress.value["ipv6_cidr_blocks"]
+    }
   }
 }

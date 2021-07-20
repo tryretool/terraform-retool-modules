@@ -27,7 +27,7 @@ module "retool" {
 
 3. Replace `ecs_retool_image` with your desired [Retool Version](https://docs.retool.com/docs/updating-retool-on-premise#retool-release-versions). The format should be `tryretool/backend:X.Y.Z`, where `X.Y.Z` is your desired version number.
 
-4. Ensure that the default security settings in `security.tf` matches your specifications. If you need to tighten down access, copy the source code and modify the security groups as needed.
+4. Ensure that the default security settings in `security.tf` matches your specifications. If you need to tighten down access, pass in custom ingress and egress rules into `ec2_egress_rules`, `ec2_ingress_rules`, `alb_egress_rules`, and `alb_ingress_rules`.
 
 5. Check through `variables.tf` for any other input variables that may be required.
 
@@ -48,6 +48,55 @@ To configure the EC instance size, set the `instance_type` input variable (e.g. 
 To configure the RDS instance class, set the `instance_class` input variable (e.g. `db.m4.large`).
 
 ## Advanced Configuration
+
+
+### Security Groups
+To customize the ingress and egress rules on the security groups, you can override specific input variable defaults.
+
+- `ec2_ingress_rules` controls the inbound rules for EC2 instances in the autoscaling group
+- `ec2_egress_rules` controls the outbound rules for EC2 instances in the autoscaling group
+- `alb_ingress_rules` controls the inbound rules for the Load Balancer
+- `alb_egress_rules` controls the outbound rules for the Load Balancer
+
+```
+ec2_ingress_rules = [
+    {
+      description      = "Global HTTP inbound"
+      from_port        = "80"
+      to_port          = "80"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    },
+    {
+      description      = "Global HTTPS inbound"
+      from_port        = "443"
+      to_port          = "443"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    },
+    {
+      description      = "SSH inbound"
+      from_port        = "22"
+      to_port          = "22"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+]
+
+ec2_egress_rules = [
+    {
+      description      = "Global outbound"
+      from_port        = "0"
+      to_port          = "0"
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+]
+```
 
 ### Environment Variables
 To add additional [Retool environment variables](https://docs.retool.com/docs/environment-variables) to your deployment, populate the `additional_env_vars` input variable into the module.

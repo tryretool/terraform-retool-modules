@@ -162,3 +162,118 @@ variable "additional_env_vars" {
   default     = []
   description = "Additional environment variables (e.g. BASE_DOMAIN)"
 }
+
+variable "ec2_ingress_rules" {
+  type = list(
+    object({
+      description      = string
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = list(string)
+      ipv6_cidr_blocks = list(string)
+    })
+  )
+  default = [
+    {
+      description      = "Global HTTP inbound"
+      from_port        = "80"
+      to_port          = "80"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    },
+    {
+      description      = "Global HTTPS inbound"
+      from_port        = "443"
+      to_port          = "443"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    },
+    {
+      description      = "SSH inbound"
+      from_port        = "22"
+      to_port          = "22"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Ingress rules for EC2 instances in autoscaling group"
+}
+
+
+variable "ec2_egress_rules" {
+  type = list(
+    object({
+      description      = string
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = list(string)
+      ipv6_cidr_blocks = list(string)
+    })
+  )
+  default = [
+    {
+      description      = "Global outbound"
+      from_port        = "0"
+      to_port          = "0"
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Egress rules for EC2 instances in autoscaling group"
+}
+
+
+variable "alb_ingress_rules" {
+  type = list(
+    object({
+      description      = string
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = list(string)
+      ipv6_cidr_blocks = list(string)
+    })
+  )
+  default = [
+    {
+      description      = "Global HTTP inbound"
+      from_port        = "80"
+      to_port          = "80"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Ingress rules for load balancer"
+}
+
+
+variable "alb_egress_rules" {
+  type = list(
+    object({
+      description      = string
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = list(string)
+      ipv6_cidr_blocks = list(string)
+    })
+  )
+  default = [
+    {
+      description      = "Global outbound"
+      from_port        = "0"
+      to_port          = "0"
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Egress rules for load balancer"
+}
