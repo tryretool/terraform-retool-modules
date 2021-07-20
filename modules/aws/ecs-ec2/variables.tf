@@ -148,7 +148,13 @@ variable "minimum_healthy_percent" {
 variable "secret_length" {
   type        = number
   default     = 48
-  description = "Length of secrets generated (e.g. ENCRYPTION_KEY, RDS_PASSWORD)"
+  description = "Length of secrets generated (e.g. ENCRYPTION_KEY, RDS_PASSWORD). Defaults to 48."
+}
+
+variable "autoscaling_memory_reservation_target" {
+  type = number
+  default = 70.0
+  description = "Memory reservation target for the Autoscaling Group. Defaults to 70.0."
 }
 
 variable "additional_env_vars" {
