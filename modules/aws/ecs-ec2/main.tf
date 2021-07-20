@@ -178,163 +178,97 @@ resource "aws_ecs_service" "jobs_runner" {
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_jobs_runner.arn
 }
-
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
-  family                = "retool"
-  task_role_arn         = aws_iam_role.task_role.arn
-  container_definitions = <<TASKDEFINITION
-[
-    {
-        "name": "retool-jobs-runner",
-        "essential": true,
-        "cpu": ${var.ecs_task_cpu},
-        "memory": ${var.ecs_task_memory},
-        "command": ["./docker_scripts/start_api.sh"],
-        "image": "${var.ecs_retool_image}",
-        "logConfiguration": {
-            "logDriver": "awslogs",
-            "Options": {
-                "awslogs-group": "${aws_cloudwatch_log_group.this.id}",
-                "awslogs-region": "${var.aws_region}",
-                "awslogs-stream-prefix": "SERVICE_RETOOL"
-            }
-        },
-        "environment": [
-            {
-                "name": "NODE_ENV",
-                "value": "production"
-            },
-            {
-                "name": "SERVICE_TYPE",
-                "value": "JOBS_RUNNER"
-            },
-            {
-                "name": "FORCE_DEPLOYMENT",
-                "value": "${var.force_deployment}"
-            },
-            {
-                "name": "POSTGRES_DB",
-                "value": "hammerhead_production"
-            },
-            {
-                "name": "POSTGRES_HOST",
-                "value": "${aws_db_instance.this.address}"
-            },
-            {
-                "name": "POSTGRES_SSL_ENABLED",
-                "value": "true"
-            },
-            {
-                "name": "POSTGRES_PORT",
-                "value": "5432"
-            },
-            {
-                "name": "POSTGRES_USER",
-                "value": "${var.rds_username}"
-            },
-            {
-                "name": "POSTGRES_PASSWORD",
-                "value": "${random_string.rds_password.result}"
-            },
-            {
-                "name": "JWT_SECRET",
-                "value": "${random_string.jwt_secret.result}"
-            },
-            {
-                "name": "ENCRYPTION_KEY",
-                "value": "${random_string.encryption_key.result}"
-            },
-            {
-                "name": "LICENSE_KEY",
-                "value": "${var.retool_license_key}"
-            }
+  family        = "retool"
+  task_role_arn = aws_iam_role.task_role.arn
+  container_definitions = jsonencode(
+    [
+      {
+        name      = "retool-jobs-runner"
+        essential = true
+        image     = var.ecs_retool_image
+        cpu       = var.ecs_task_cpu
+        memory    = var.ecs_task_memory
+        command = [
+          "./docker_scripts/start_api.sh"
         ]
-    }
-]
-TASKDEFINITION
-}
 
-resource "aws_ecs_task_definition" "retool" {
-  family                = "retool"
-  task_role_arn         = aws_iam_role.task_role.arn
-  container_definitions = <<TASKDEFINITION
-[
-    {
-        "name": "retool",
-        "essential": true,
-        "cpu": ${var.ecs_task_cpu},
-        "memory": ${var.ecs_task_memory},
-        "command": ["./docker_scripts/start_api.sh"],
-        "image": "${var.ecs_retool_image}",
-        "logConfiguration": {
-            "logDriver": "awslogs",
-            "options": {
-                "awslogs-group": "${aws_cloudwatch_log_group.this.id}",
-                "awslogs-region": "${var.aws_region}",
-                "awslogs-stream-prefix": "SERVICE_RETOOL"
-            }
-        },
-        "portMappings": [
-            {
-                "containerPort": 3000,
-                "hostPort": 80
-            }
-        ],
-        "environment": [
-            {
-                "name": "NODE_ENV",
-                "value": "production"
-            },
-            {
-                "name": "SERVICE_TYPE",
-                "value": "MAIN_BACKEND,DB_CONNECTOR"
-            },
-            {
-                "name": "FORCE_DEPLOYMENT",
-                "value": "${var.force_deployment}"
-            },
-            {
-                "name": "POSTGRES_DB",
-                "value": "hammerhead_production"
-            },
-            {
-                "name": "POSTGRES_HOST",
-                "value": "${aws_db_instance.this.address}"
-            },
-            {
-                "name": "POSTGRES_SSL_ENABLED",
-                "value": "true"
-            },
-            {
-                "name": "POSTGRES_PORT",
-                "value": "5432"
-            },
-            {
-                "name": "POSTGRES_USER",
-                "value": "${var.rds_username}"
-            },
-            {
-                "name": "POSTGRES_PASSWORD",
-                "value": "${random_string.rds_password.result}"
-            },
-            {
-                "name": "JWT_SECRET",
-                "value": "${random_string.jwt_secret.result}"
-            },
-            {
-                "name": "ENCRYPTION_KEY",
-                "value": "${random_string.encryption_key.result}"
-            },
-            {
-                "name": "LICENSE_KEY",
-                "value": "${var.retool_license_key}"
-            },
-            {
-                "name": "COOKIE_INSECURE",
-                "value": "${var.cookie_insecure}"
-            }
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.this.id
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "SERVICE_RETOOL"
+          }
+        }
+
+        portMappings = [
+          {
+            containerPort = 3000
+            hostPort      = 80
+            protocol      = "tcp"
+          }
         ]
-    }
-]
-TASKDEFINITION
+
+        environment = concat(
+          local.environment_variables,
+          [
+            {
+              name  = "SERVICE_TYPE"
+              value = "JOBS_RUNNER"
+            }
+          ]
+        )
+      }
+    ]
+  )
+}
+resource "aws_ecs_task_definition" "retool" {
+  family        = "retool"
+  task_role_arn = aws_iam_role.task_role.arn
+  container_definitions = jsonencode(
+    [
+      {
+        name      = "retool"
+        essential = true
+        image     = var.ecs_retool_image
+        cpu       = var.ecs_task_cpu
+        memory    = var.ecs_task_memory
+        command = [
+          "./docker_scripts/start_api.sh"
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.this.id
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "SERVICE_RETOOL"
+          }
+        }
+
+        portMappings = [
+          {
+            containerPort = 3000
+            hostPort      = 80
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = concat(
+          local.environment_variables,
+          [
+            {
+              name  = "SERVICE_TYPE"
+              value = "MAIN_BACKEND,DB_CONNECTOR"
+            },
+            {
+              "name"  = "COOKIE_INSECURE",
+              "value" = tostring(var.cookie_insecure)
+            }
+          ]
+        )
+      }
+    ]
+  )
 }

@@ -4,6 +4,12 @@ variable "aws_region" {
   description = "AWS region. Defaults to `us-east-1`"
 }
 
+variable "node_env" {
+  type        = string
+  default     = "production"
+  description = "Value for NODE_ENV variable. Defaults to `production`."
+}
+
 variable "vpc_id" {
   type        = string
   description = "Select a VPC that allows instances access to the Internet."
@@ -143,4 +149,10 @@ variable "secret_length" {
   type        = number
   default     = 48
   description = "Length of secrets generated (e.g. ENCRYPTION_KEY, RDS_PASSWORD)"
+}
+
+variable "additional_env_vars" {
+  type        = list(map(string))
+  default     = []
+  description = "Additional environment variables (e.g. BASE_DOMAIN)"
 }
