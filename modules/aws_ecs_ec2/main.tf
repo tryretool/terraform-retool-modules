@@ -54,9 +54,9 @@ resource "aws_launch_configuration" "this" {
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier
   # and marks the instance as purchased through the Spot pricing
   user_data = <<EOF
-#!/bin/bash
-echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
-EOF
+  #!/bin/bash
+  echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
+  EOF
 
   # We’ll see security groups later
   security_groups = [
@@ -124,7 +124,7 @@ resource "aws_autoscaling_policy" "this" {
       namespace   = "AWS/ECS"
       statistic   = "Average"
     }
-    target_value = 70.0
+    target_value = var.autoscaling_memory_reservation_target
   }
 }
 
