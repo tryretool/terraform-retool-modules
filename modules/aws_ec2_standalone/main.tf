@@ -51,7 +51,7 @@ resource "aws_instance" "this" {
 
   associate_public_ip_address = var.associate_public_ip_address
   vpc_security_group_ids      = [aws_security_group.this.id]
-  subnet_id = var.subnet_id
+  subnet_id                   = var.subnet_id
 
   root_block_device {
     encrypted   = var.storage_encrypted

@@ -152,8 +152,8 @@ variable "secret_length" {
 }
 
 variable "autoscaling_memory_reservation_target" {
-  type = number
-  default = 70.0
+  type        = number
+  default     = 70.0
   description = "Memory reservation target for the Autoscaling Group. Defaults to 70.0."
 }
 
