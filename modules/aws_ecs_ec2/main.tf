@@ -22,13 +22,7 @@ resource "aws_ecs_cluster" "this" {
 
 data "aws_ami" "this" {
   most_recent = true # get the latest version
-
-  filter {
-    name = "name"
-    values = [
-      "amzn2-ami-ecs-*" # ECS optimized image
-    ]
-  }
+  name_regex = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
 
   filter {
     name = "virtualization-type"
