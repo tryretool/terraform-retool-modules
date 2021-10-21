@@ -15,7 +15,7 @@ module "retool" {
         "<your-subnet-1>",
         "<your-subnet-2>"
     ]
-    ssh_key_pair = "<your-key-pair>"
+    ssh_key_name = "<your-key-name>"
     ecs_retool_image = "<desired-retool-version>"
 
     # Additional configuration
