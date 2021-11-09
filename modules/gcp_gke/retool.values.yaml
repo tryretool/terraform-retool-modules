@@ -1,0 +1,197 @@
+# nameOverride:
+# fullNameOverride:
+
+config:
+  licenseKeySecretName: retool-license-key
+  licenseKeySecretKey: retool-license-key
+  useInsecureCookies: false
+  # auth:
+  #   google:
+  #     clientId: 428709347318-t5mg831rauil0kjk0aqso0vbl6ir40vr.apps.googleusercontent.com
+  #     clientSecretSecretName: onprem-defaults
+  #     clientSecretSecretKey: googleClientSecret
+  encryptionKeySecretName: encryption-key
+  encryptionKeySecretKey: encryption-key
+  # jwtSecretSecretName is the name of the secret where the jwt secret is stored (can be used instead of jwtSecret)
+  jwtSecretSecretName: jwt-secret
+  # jwtSecretSecretKey is the key in the k8s secret, default: jwt-secret
+  jwtSecretSecretKey: jwt-secret
+
+  postgresql:
+    # Specify if postgresql subchart is disabled
+    host: # database host name
+    port: 5432
+    db: # database db name
+    user: # database user
+    passwordSecretName: # database password secret name
+    passwordSecretKey: # database password secret key
+    ssl_enabled: true
+
+image:
+  repository: "tryretool/backend"
+  tag: "2.72.28"
+  pullPolicy: "Always"
+
+commandline:
+  args: []
+
+env:
+  BASE_DOMAIN: # add base domain here
+  DOMAINS: # add domains here
+
+# Support for external secrets https://github.com/godaddy/kubernetes-external-secrets
+externalSecrets:
+  enabled: false
+  # name: retool-config
+
+files: {}
+
+deployment:
+  annotations: {}
+
+service:
+  type: ClusterIP
+  externalPort: 3000
+  internalPort: 3000
+  # externalIPs:
+  # - 192.168.0.1
+  #
+  ## LoadBalancer IP if service.type is LoadBalancer
+  # loadBalancerIP: 10.2.2.2
+  annotations: {}
+  labels: {}
+  ## Limit load balancer source ips to list of CIDRs (where available)
+  # loadBalancerSourceRanges: []
+  selector: {}
+  # portName: service-port
+
+ingress:
+  enabled: false
+  # # For Kubernetes v1.14+, use 'networking.k8s.io/v1beta1'
+  # apiVersion: "extensions/v1beta1"
+  # labels: {}
+  # annotations: {}
+  # # kubernetes.io/ingress.class: nginx
+  # # kubernetes.io/tls-acme: "true"
+  # # configures the hostname e.g. retool.example.com
+  # hostName:
+  # tls:
+  # # - secretName: retool.example.com
+  # #   hosts:
+  # #     - retool.example.com
+  # # servicePort: service-port
+
+postgresql:
+  enabled: false
+  # ssl_enabled: false
+  # postgresqlDatabase: hammerhead_production
+  # postgresqlUsername: retool
+  # postgresqlPassword: retool
+  # service:
+  #   port: 5432
+  # # Use the offical docker image rather than bitnami/docker
+  # # since Retool depends on the uuid-ossp extension
+  # image:
+  #   repository: "postgres"
+  #   tag: "10.6"
+  # postgresqlDataDir: "/data/pgdata"
+  # persistence:
+  #   enabled: true
+  #   mountPath: "/data/"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # # The name of the service account to use.
+  # # If not set and create is true, a name is generated using the fullname template
+  # # If set and create is false, the service account must be existing
+  # name:
+  # annotations: {}
+
+livenessProbe:
+  enabled: true
+  path: /api/checkHealth
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+
+readinessProbe:
+  enabled: true
+  path: /api/checkHealth
+  initialDelaySeconds: 30
+  timeoutSeconds: 10
+  periodSeconds: 10
+  successThreshold: 2
+
+extraContainers: []
+
+extraVolumeMounts: []
+
+extraVolumes: []
+
+resources:
+  limits:
+    #   cpu: 500m
+    memory: 8000Mi
+  requests:
+    #   cpu: 500m
+    memory: 2000Mi
+
+priorityClassName: ""
+
+# Affinity for pod assignment
+# Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+# affinity: {}
+
+# Tolerations for pod assignment
+# Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+# Node labels for pod assignment
+# Ref: https://kubernetes.io/docs/user-guide/node-selection/
+nodeSelector: {}
+
+podAnnotations: {}
+# Increasing replica count will deploy a separate pod for backend and jobs
+# Example: with 3 replicas, you will end up with 3 backends + 1 jobs pod
+replicaCount: 1
+revisionHistoryLimit: 3
+
+# Optional pod disruption budget, for ensuring higher availability of the
+# Retool application.  Specify either minAvailable or maxUnavailable, as
+# either an integer pod count (1) or a string percentage ("50%").
+# Ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
+#
+# Example:
+# podDisruptionBudget:
+#   maxUnavailable: 1
+
+# Custom labels for pod assignment
+podLabels: {}
+
+persistentVolumeClaim:
+  # set to true to use pvc
+  enabled: false
+  # # set to true to use you own pvc
+  # existingClaim: false
+  # annotations: {}
+  # accessModes:
+  #   - ReadWriteOnce
+  # size: "15Gi"
+  # ## If defined, storageClassName: <storageClass>
+  # ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  # ## If undefined (the default) or set to null, no storageClassName spec is
+  # ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  # ##   GKE, AWS & OpenStack)
+  # ##
+  # # storageClass: "-"
+
+# default security context
+securityContext:
+  enabled: false
+  # allowPrivilegeEscalation: false
+  # runAsUser: 1000
+  # fsGroup: 2000
+
+extraConfigMapMounts: []
+
+initContainers: {}
