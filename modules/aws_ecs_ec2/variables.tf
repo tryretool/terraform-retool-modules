@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "node_env" {
   type        = string
   default     = "production"
-  description = "Value for NODE_ENV variable. Defaults to `production`."
+  description = "Value for NODE_ENV variable. Defaults to `production` and must be either `production`, `staging`, or `development`."
 }
 
 variable "vpc_id" {
