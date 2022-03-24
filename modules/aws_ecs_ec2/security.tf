@@ -1,13 +1,19 @@
 resource "aws_security_group" "rds" {
   name        = "${var.deployment_name}-rds-security-group"
   description = "Retool database security group"
+  vpc_id      = var.vpc_id
 
-  ingress {
-    description = "Retool ECS Postgres Inbound"
-    from_port   = "5432"
-    to_port     = "5432"
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.rds_ingress_rules
+    content {
+      description      = ingress.value["description"]
+      from_port        = ingress.value["from_port"]
+      to_port          = ingress.value["to_port"]
+      protocol         = ingress.value["protocol"]
+      cidr_blocks      = ingress.value["cidr_blocks"]
+      ipv6_cidr_blocks = ingress.value["ipv6_cidr_blocks"]
+      security_groups  = ingress.value["security_groups"]
+    }
   }
 
   # Allow all outbound - modify if necessary

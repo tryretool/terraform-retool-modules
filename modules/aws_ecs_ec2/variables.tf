@@ -175,6 +175,32 @@ variable "additional_env_vars" {
   description = "Additional environment variables (e.g. BASE_DOMAIN)"
 }
 
+variable "rds_ingress_rules" {
+  type = list(
+    object({
+      description      = string
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = list(string)
+      ipv6_cidr_blocks = list(string)
+      security_groups  = list(string)
+    })
+  )
+  default = [
+    {
+      description      = "Retool ECS Postgres Inbound"
+      from_port        = "5432"
+      to_port          = "5432"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      security_groups  = null
+      ipv6_cidr_blocks = null
+    },
+  ]
+  description = "Ingress rules for RDS"
+}
+
 variable "ec2_ingress_rules" {
   type = list(
     object({
