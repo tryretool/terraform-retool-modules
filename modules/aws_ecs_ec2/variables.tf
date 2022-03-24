@@ -103,6 +103,12 @@ variable "rds_publicly_accessible" {
   description = "Whether the RDS instance should be publicly accessible. Defaults to false."
 }
 
+variable "rds_subnet_group_name" {
+  type        = string
+  description = "RDS instance will be created in the VPC associated with the subnet group"
+  default     = null
+}
+
 variable "rds_performance_insights_enabled" {
   type        = bool
   default     = true
