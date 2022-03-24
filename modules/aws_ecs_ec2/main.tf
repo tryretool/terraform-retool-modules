@@ -168,7 +168,16 @@ resource "aws_ecs_service" "retool" {
   desired_count                      = var.min_instance_count - 1
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
-  iam_role                           = aws_iam_role.service_role.arn
+  iam_role                           = var.ecs_network_mode == "awsvpc" ? null : aws_iam_role.service_role.arn
+
+  dynamic "network_configuration" {
+    for_each = var.ecs_network_configuration
+    content {
+      security_groups  = network_configuration.value["security_groups"]
+      subnets          = network_configuration.value["subnets"]
+      assign_public_ip = network_configuration.value["assign_public_ip"]
+    }
+  }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.this.arn
@@ -186,6 +195,7 @@ resource "aws_ecs_service" "jobs_runner" {
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family        = "retool-jobs-runner"
   task_role_arn = aws_iam_role.task_role.arn
+  network_mode  = var.ecs_network_mode
   container_definitions = jsonencode(
     [
       {
@@ -210,7 +220,7 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
         portMappings = [
           {
             containerPort = 3000
-            hostPort      = 80
+            hostPort      = var.ecs_host_port
             protocol      = "tcp"
           }
         ]
@@ -231,6 +241,7 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
 resource "aws_ecs_task_definition" "retool" {
   family        = "retool"
   task_role_arn = aws_iam_role.task_role.arn
+  network_mode  = var.ecs_network_mode
   container_definitions = jsonencode(
     [
       {
@@ -255,7 +266,7 @@ resource "aws_ecs_task_definition" "retool" {
         portMappings = [
           {
             containerPort = 3000
-            hostPort      = 80
+            hostPort      = var.ecs_host_port
             protocol      = "tcp"
           }
         ]

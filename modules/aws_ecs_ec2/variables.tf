@@ -79,6 +79,26 @@ variable "ecs_task_memory" {
   description = "Amount of memory provisioned for each task. Defaults to 2048."
 }
 
+variable "ecs_network_mode" {
+  type        = string
+  default     = null
+  description = "If set to `awsvpc`, then `ecs_network_configuration` must also be set."
+}
+
+variable "ecs_network_configuration" {
+  type = list(object({
+    security_groups  = list(string)
+    subnets          = list(string)
+    assign_public_ip = bool
+  }))
+  default = []
+}
+
+variable "ecs_host_port" {
+  type    = number
+  default = 80
+}
+
 variable "force_deployment" {
   type        = string
   default     = false
