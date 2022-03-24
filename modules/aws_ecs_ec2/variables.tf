@@ -61,6 +61,12 @@ variable "ecs_retool_image" {
   default     = "tryretool/backend:2.106.2"
 }
 
+variable "associate_public_ip_address" {
+  type        = bool
+  default     = true
+  description = "Whether to associate a public IP address with an instance in a VPC. Defaults to true."
+}
+
 variable "ecs_task_cpu" {
   type        = number
   default     = 1024
