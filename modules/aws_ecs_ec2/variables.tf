@@ -123,6 +123,11 @@ variable "rds_instance_class" {
   description = "Instance class for RDS. Defaults to `db.m6g.large`"
 }
 
+variable "rds_engine_version" {
+  type    = string
+  default = "12.10"
+}
+
 variable "rds_publicly_accessible" {
   type        = bool
   default     = true
