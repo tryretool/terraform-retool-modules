@@ -1,5 +1,6 @@
 resource "aws_lb" "this" {
   name         = "${var.deployment_name}-alb"
+  internal     = var.alb_internal
   idle_timeout = var.alb_idle_timeout
 
   security_groups = [aws_security_group.alb.id]

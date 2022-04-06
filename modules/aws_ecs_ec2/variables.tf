@@ -138,6 +138,12 @@ variable "log_retention_in_days" {
   description = "Number of days to retain logs in CloudWatch. Defaults to 14."
 }
 
+variable "alb_internal" {
+  type        = bool
+  default     = true
+  description = "If true, LB will be an internal LB"
+}
+
 variable "alb_idle_timeout" {
   type        = number
   default     = 60
