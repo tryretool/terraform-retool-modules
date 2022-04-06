@@ -221,6 +221,7 @@ variable "ec2_ingress_rules" {
       protocol         = string
       cidr_blocks      = list(string)
       ipv6_cidr_blocks = list(string)
+      security_groups  = list(string)
     })
   )
   default = [
@@ -231,6 +232,7 @@ variable "ec2_ingress_rules" {
       protocol         = "tcp"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
+      security_groups  = null
     },
     {
       description      = "Global HTTPS inbound"
@@ -239,6 +241,7 @@ variable "ec2_ingress_rules" {
       protocol         = "tcp"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
+      security_groups  = null
     },
     {
       description      = "SSH inbound"
@@ -247,6 +250,7 @@ variable "ec2_ingress_rules" {
       protocol         = "tcp"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
+      security_groups  = null
     }
   ]
   description = "Ingress rules for EC2 instances in autoscaling group"
@@ -287,6 +291,7 @@ variable "alb_ingress_rules" {
       protocol         = string
       cidr_blocks      = list(string)
       ipv6_cidr_blocks = list(string)
+      security_groups  = list(string)
     })
   )
   default = [
@@ -297,6 +302,7 @@ variable "alb_ingress_rules" {
       protocol         = "tcp"
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
+      security_groups  = null
     }
   ]
   description = "Ingress rules for load balancer"
