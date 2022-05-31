@@ -242,15 +242,6 @@ variable "ec2_ingress_rules" {
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
       security_groups  = null
-    },
-    {
-      description      = "SSH inbound"
-      from_port        = "22"
-      to_port          = "22"
-      protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-      security_groups  = null
     }
   ]
   description = "Ingress rules for EC2 instances in autoscaling group"
