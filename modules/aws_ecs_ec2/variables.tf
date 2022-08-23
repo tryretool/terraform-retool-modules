@@ -27,7 +27,7 @@ variable "ssh_key_name" {
 
 variable "instance_type" {
   type        = string
-  description = "ECS cluster instance type. Defaults to `t2.medium`"
+  description = "ECS cluster instance type. Defaults to `t2.large`"
   default     = "t2.large"
 }
 
@@ -57,7 +57,7 @@ variable "retool_license_key" {
 
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version"
+  description = "Container image for desired Retool version. Defaults to `2.96.2`"
   default     = "tryretool/backend:2.96.2"
 }
 
