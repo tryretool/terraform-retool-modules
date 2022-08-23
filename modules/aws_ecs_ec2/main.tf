@@ -37,7 +37,7 @@ data "aws_ami" "this" {
 }
 
 resource "aws_launch_configuration" "this" {
-  name          = "${var.deployment_name}-ecs-launch-configuration"
+  name_prefix   = "${var.deployment_name}-ecs-launch-configuration-"
   image_id      = data.aws_ami.this.id
   instance_type = var.instance_type # e.g. t2.medium
 
@@ -65,6 +65,10 @@ resource "aws_launch_configuration" "this" {
 
   # Allow the EC2 instances to access AWS resources on your behalf, using this instance profile and the permissions defined there
   iam_instance_profile = aws_iam_instance_profile.ec2.arn
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_autoscaling_group" "this" {
@@ -98,6 +102,10 @@ resource "aws_autoscaling_group" "this" {
     key                 = "Name"
     value               = "${var.deployment_name}-ec2-instance"
     propagate_at_launch = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
