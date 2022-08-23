@@ -28,7 +28,7 @@ variable "ssh_key_name" {
 variable "instance_type" {
   type        = string
   description = "ECS cluster instance type. Defaults to `t2.medium`"
-  default     = "t2.medium"
+  default     = "t2.large"
 }
 
 variable "max_instance_count" {
@@ -58,7 +58,7 @@ variable "retool_license_key" {
 variable "ecs_retool_image" {
   type        = string
   description = "Container image for desired Retool version"
-  default     = "tryretool/backend:2.69.18"
+  default     = "tryretool/backend:2.96.2"
 }
 
 variable "ecs_task_cpu" {
