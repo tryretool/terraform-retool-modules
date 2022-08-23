@@ -6,8 +6,8 @@ variable "aws_region" {
 
 variable "instance_type" {
   type        = string
-  default     = "t3.medium"
-  description = "EC2 instance type. Defaults to `t3.medium`."
+  default     = "t3.large"
+  description = "EC2 instance type. Defaults to `t3.large`."
 }
 
 variable "instance_name" {
@@ -18,8 +18,8 @@ variable "instance_name" {
 
 variable "version_number" {
   type        = string
-  default     = "2.69.18"
-  description = "Retool version number. Defaults to `2.69.18`."
+  default     = "2.96.2"
+  description = "Retool version number. Defaults to `2.96.2`."
 }
 
 variable "vpc_id" {
