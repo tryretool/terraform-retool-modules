@@ -15,7 +15,7 @@ module "retool" {
     aws_region = "<your-aws-region>"
     vpc_id = "<your-vpc-id>"
     subnet_id = "<your-subnet-1>"
-    ssh_key_pair = "<your-key-pair>"
+    ssh_key_name = "<your-key-pair-name>"
     version_number = "<desired-retool-version (e.g. 2.69.18)>"
 
     # Additional configuration
