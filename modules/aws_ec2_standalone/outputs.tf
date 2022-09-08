@@ -4,7 +4,7 @@ output "ec2_arn" {
 }
 
 output "ec2_id" {
-  value       = aws_instance.this.arn
+  value       = aws_instance.this.id
   description = "ID of EC2 Instance"
 }
 
