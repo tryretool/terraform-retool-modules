@@ -105,7 +105,7 @@ variable "rds_instance_class" {
 
 variable "rds_engine_version" {
   type    = string
-  default = "12.10"
+  default = "12.11"
 }
 
 variable "rds_publicly_accessible" {
