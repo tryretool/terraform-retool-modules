@@ -34,12 +34,6 @@ variable "subnet_id" {
   description = "VPC Subnet ID to launch in."
 }
 
-# variable "instance_ami" {
-#   type        = string
-#   default     = "ami-06bb3ee01d992f30d" # Ubuntu Server 22.04 LTS 64-bit x86
-#   description = "AMI for EC2 instance. Defaults to `ami-06bb3ee01d992f30d` (Ubuntu Server 22.04 LTS 64-bit x86)."
-# }
-
 variable "ssh_key_name" {
   type        = string
   description = "EC2 SSH keypair"
