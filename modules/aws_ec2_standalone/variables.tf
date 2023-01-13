@@ -18,8 +18,8 @@ variable "instance_name" {
 
 variable "version_number" {
   type        = string
-  default     = "2.96.2"
-  description = "Retool version number. Defaults to `2.96.2`."
+  default     = "2.106.2"
+  description = "Retool version number. Defaults to `2.106.2`."
 }
 
 variable "vpc_id" {
@@ -34,11 +34,11 @@ variable "subnet_id" {
   description = "VPC Subnet ID to launch in."
 }
 
-variable "instance_ami" {
-  type        = string
-  default     = "ami-00399ec92321828f5" # Ubuntu Server 20.04 LTS 64-bit x86
-  description = "AMI for EC2 instance. Defaults to `ami-00399ec92321828f5` (Ubuntu Server 20.04 LTS 64-bit x86)."
-}
+# variable "instance_ami" {
+#   type        = string
+#   default     = "ami-06bb3ee01d992f30d" # Ubuntu Server 22.04 LTS 64-bit x86
+#   description = "AMI for EC2 instance. Defaults to `ami-06bb3ee01d992f30d` (Ubuntu Server 22.04 LTS 64-bit x86)."
+# }
 
 variable "ssh_key_name" {
   type        = string

@@ -2,13 +2,30 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "3.50.0"
+      version = "~> 4.0"
     }
   }
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+data "aws_ami" "this" {
+  most_recent = true # get the latest version
+   filter {
+      name   = "name"
+      values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+      name   = "virtualization-type"
+      values = ["hvm"]
+  }
+
+  owners = [
+    "amazon" # only official images
+  ]
 }
 
 resource "aws_security_group" "this" {
@@ -45,7 +62,7 @@ resource "aws_security_group" "this" {
 }
 
 resource "aws_instance" "this" {
-  ami           = var.instance_ami
+  ami           = data.aws_ami.this.id
   instance_type = var.instance_type
   key_name      = var.ssh_key_name
 

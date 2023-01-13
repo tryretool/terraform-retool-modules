@@ -1,8 +1,9 @@
 # AWS EC2 Standalone Deployment
 
 ## Requirements
+
 - RDS instance with port, host, username, and password
-- VPC with desired subnets 
+- VPC with desired subnets
 
 ## Usage
 
@@ -56,10 +57,13 @@ docker-ps
 ```
 
 8. Modify your environment variables. If you have an external RDS database (strongly recommended), replace the `POSTGRES_` environment variables with the new ones.
-  - If testing out your instance for the first time without SSL/HTTPS, you should uncomment `# COOKIE_INSECURE = true`
-  - Replace your `LICENSE_KEY` with your provided Retool license key
+
+- If testing out your instance for the first time without SSL/HTTPS, you should uncomment `# COOKIE_INSECURE = true`
+- Replace your `LICENSE_KEY` with your provided Retool license key
 
 9. Add any additional configuration needed. You can refer to our documentation for [all additional environment variables](https://docs.retool.com/docs/environment-variables).
+
+10. Access your Retool instance on the ec2_public_dns that is given via the resource creation outputs. If no SSL certificate has been configured you need to access the instance on port 300 (append :300 to the end of the URL) and via http.
 
 ### Security Group
 
@@ -112,5 +116,4 @@ egress_rules = [
 ]
 ```
 
-By default, this module creates a publicly-accessible security group that enables inbound traffic on ports (`30`, `443`, `22`, and `8000`) and all outbound traffic.
-
+By default, this module creates a publicly-accessible security group that enables inbound traffic on ports (`30`, `443`, `22`, and `3000`) and all outbound traffic.
