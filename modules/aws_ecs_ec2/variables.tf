@@ -57,8 +57,8 @@ variable "retool_license_key" {
 
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `2.96.2`"
-  default     = "tryretool/backend:2.96.2"
+  description = "Container image for desired Retool version. Defaults to `2.106.2`"
+  default     = "tryretool/backend:2.106.2"
 }
 
 variable "ecs_task_cpu" {
@@ -93,8 +93,8 @@ variable "rds_username" {
 
 variable "rds_instance_class" {
   type        = string
-  default     = "db.m4.large"
-  description = "Instance class for RDS. Defaults to `db.m4.large`"
+  default     = "db.m6g.large"
+  description = "Instance class for RDS. Defaults to `db.m6g.large`"
 }
 
 variable "rds_publicly_accessible" {

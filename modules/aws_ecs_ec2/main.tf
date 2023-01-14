@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "3.50.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -144,12 +144,12 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier                   = "${var.deployment_name}-rds-instance"
+  identifier                    = "${var.deployment_name}-rds-instance"
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
   engine                       = "postgres"
-  engine_version               = "10.6"
-  name                         = "hammerhead_production"
+  engine_version               = "13.7"
+  db_name                      = "hammerhead_production"
   username                     = aws_secretsmanager_secret_version.rds_username.secret_string
   password                     = aws_secretsmanager_secret_version.rds_password.secret_string
   port                         = 5432
@@ -158,7 +158,7 @@ resource "aws_db_instance" "this" {
   performance_insights_enabled = var.rds_performance_insights_enabled
   
   skip_final_snapshot          = true
-  apply_immediately            = true
+  apply_immediately           = true
 }
 
 resource "aws_ecs_service" "retool" {
@@ -184,7 +184,7 @@ resource "aws_ecs_service" "jobs_runner" {
   task_definition = aws_ecs_task_definition.retool_jobs_runner.arn
 }
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
-  family        = "retool"
+  family        = "retool-jobs-runner"
   task_role_arn = aws_iam_role.task_role.arn
   container_definitions = jsonencode(
     [
