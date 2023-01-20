@@ -3,7 +3,10 @@ This repository contains example Terraform modules for installing and configurin
 Disclaimer: Please use these modules only if you're comfortable configuring Terraform.
 
 # Prerequisites
-- All modules utilize **Hashicorp Terraform 3.50.0**
+
+- All modules have been test on **Hashicorp Terraform v1.3.7**
+- The AWS Provider version is set to **v4.0**
 
 # Usage
+
 Navigate to your desired cloud provider + deployment module for specific configuration options.

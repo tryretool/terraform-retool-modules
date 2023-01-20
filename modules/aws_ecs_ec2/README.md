@@ -3,6 +3,7 @@
 This module deploys an ECS cluster with autoscaling group of EC2 instances.
 
 # Usage
+
 1. Directly use our module in your existing Terraform configuration and provide the required variables
 
 ```
@@ -45,12 +46,12 @@ module "retool" {
 To configure the EC instance size, set the `instance_type` input variable (e.g. `t2.large`).
 
 **RDS Instance Class**
-To configure the RDS instance class, set the `instance_class` input variable (e.g. `db.m4.large`).
+To configure the RDS instance class, set the `instance_class` input variable (e.g. `db.m6g.large`).
 
 ## Advanced Configuration
 
-
 ### Security Groups
+
 To customize the ingress and egress rules on the security groups, you can override specific input variable defaults.
 
 - `ec2_ingress_rules` controls the inbound rules for EC2 instances in the autoscaling group
@@ -99,6 +100,7 @@ ec2_egress_rules = [
 ```
 
 ### Environment Variables
+
 To add additional [Retool environment variables](https://docs.retool.com/docs/environment-variables) to your deployment, populate the `additional_env_vars` input variable into the module.
 
 NOTE: The `additional_env_vars` will only work as type `map(string)`. Convert all booleans and numbers into strings, e.g.

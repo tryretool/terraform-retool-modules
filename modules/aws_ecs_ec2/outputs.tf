@@ -39,6 +39,6 @@ output "rds_instance_arn" {
 }
 
 output "rds_instance_name" {
-  value       = aws_db_instance.this.name
+  value       = aws_db_instance.this.db_name
   description = "Name of RDS instance"
 }
