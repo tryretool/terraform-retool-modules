@@ -63,7 +63,7 @@ docker-ps
 
 9. Add any additional configuration needed. You can refer to our documentation for [all additional environment variables](https://docs.retool.com/docs/environment-variables).
 
-10. Access your Retool instance on the ec2_public_dns that is given via the resource creation outputs. If no SSL certificate has been configured you need to access the instance on port 300 (append :300 to the end of the URL) and via http.
+10. Access your Retool instance on the ec2_public_dns that is given via the resource creation outputs. If no SSL certificate has been configured you need to access the instance on port 3000 (append :3000 to the end of the URL) and via http.
 
 ### Security Group
 
