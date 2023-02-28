@@ -92,7 +92,7 @@ variable "rds_instance_class" {
 
 variable "rds_publicly_accessible" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether the RDS instance should be publicly accessible. Defaults to false."
 }
 
