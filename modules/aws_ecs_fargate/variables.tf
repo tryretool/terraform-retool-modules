@@ -102,6 +102,11 @@ variable "rds_performance_insights_enabled" {
   description = "Whether to enable Performance Insights for RDS. Defaults to true."
 }
 
+variable "rds_subnet_ids" {
+  type        = list(string)
+  description = "Select at least two subnets for the RDS instance."
+}
+
 variable "secret_length" {
   type        = number
   default     = 48

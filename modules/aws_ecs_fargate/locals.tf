@@ -51,6 +51,7 @@ locals {
 
   stack_name                          = "${var.deployment_name}"
   database_name                       =  aws_db_instance.this.db_name
+  db_subnet_group_name                = "${var.deployment_name}-subnet-group"
   retool_image                        = "${var.ecs_retool_image}"
   retool_alb_ingress_port             = var.alb_listener_certificate_arn != null ? "443" : var.retool_alb_ingress_port
   retool_alb_listener_protocol        = var.alb_listener_certificate_arn != null ? "HTTPS" : var.aws_lb_listener_protocol
