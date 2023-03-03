@@ -74,22 +74,22 @@ resource "aws_ecs_service" "retool" {
   }
 }
 
-resource "aws_eip" "retool_ip" {
-  vpc = true
-}
+# resource "aws_eip" "retool_ip" {
+#   vpc = true
+# }
 
-resource "aws_nat_gateway" "retool_nat_gateway" {
-  allocation_id = aws_eip.retool_ip.id
-  subnet_id = var.public_subnet
+# resource "aws_nat_gateway" "retool_nat_gateway" {
+#   allocation_id = aws_eip.retool_ip.id
+#   subnet_id = var.public_subnet
 
-  tags = {
-    "Name" = "retool-nat"
-  }
+#   tags = {
+#     "Name" = "retool-nat"
+#   }
 
-  depends_on = [
-    var.internet_gateway
-  ]
-}
+#   depends_on = [
+#     var.internet_gateway
+#   ]
+# }
 
 resource "aws_ecs_task_definition" "retool" {
     family                   = "${var.deployment_name}-backend"
