@@ -31,11 +31,6 @@ variable "public_subnet" {
   description = "Public subnet for NAT Gateway."
 }
 
-variable "internet_gateway" {
-  type        = string
-  description = "Internet gateway attached to VPC."
-}
-
 variable "ecs_insights_enabled" {
   type        = string
   default     = "enabled"
