@@ -15,9 +15,9 @@ variable "vpc_id" {
   description = "Select a VPC that allows instances access to the Internet."
 }
 
-variable "subnet_ids" {
+variable "ecs_tasks_subnet_ids" {
   type        = list(string)
-  description = "Select at least two subnets in your selected VPC."
+  description = "Subnets for Fargate tasks (probably private)."
 }
 
 variable "deployment_name" {
@@ -26,9 +26,9 @@ variable "deployment_name" {
   default     = "retool"
 }
 
-variable "public_subnet" {
-  type        = string
-  description = "Public subnet for NAT Gateway."
+variable "alb_subnet_ids" {
+  type        = list(string)
+  description = "Public subnets for Load Balancer."
 }
 
 variable "ecs_insights_enabled" {
@@ -138,52 +138,104 @@ variable "alb_listener_certificate_arn" {
   default     = null
 }
 
-variable "alb_ingress_rules" {
-  type = list(
+variable "alb_ingress_rules_map" {
+  type = map(
     object({
-      description      = string
-      from_port        = string
-      to_port          = string
-      protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string # preferably optional(string) but reqs tf v1.3+
+      cidr_ipv6                    = string # preferably optional(string) but reqs tf v1.3+
+      prefix_list_id               = string # preferably optional(string) but reqs tf v1.3+
+      referenced_security_group_id = string # preferably optional(string) but reqs tf v1.3+
     })
   )
-  default = [
-    {
-      description      = "Global HTTP inbound"
-      from_port        = "80"
-      to_port          = "80"
-      protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
+  default = {
+    global_http_in = {
+      description                  = "Global HTTP inbound"
+      from_port                    = "80"
+      to_port                      = "80"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = "0.0.0.0/0"
+      cidr_ipv6                    = "::/0"
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
     }
-  ]
+  }
   description = "Ingress rules for load balancer"
 }
 
-variable "alb_egress_rules" {
-  type = list(
+variable "alb_extra_egress_rules_map" {
+  type = map(
     object({
-      description      = string
-      from_port        = string
-      to_port          = string
-      protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string
+      cidr_ipv6                    = string
+      prefix_list_id               = string
+      referenced_security_group_id = string
     })
   )
-  default = [
-    {
-      description      = "Global outbound"
-      from_port        = "0"
-      to_port          = "0"
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
+  default     = {}
+  description = "Extra egress rules (beyond connectivity to Fargate tasks) for load balancer"
+}
+
+variable "ecs_tasks_extra_ingress_rules_map" {
+  type = map(
+    object({
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string # preferably optional(string) but reqs tf v1.3+
+      cidr_ipv6                    = string # preferably optional(string) but reqs tf v1.3+
+      prefix_list_id               = string # preferably optional(string) but reqs tf v1.3+
+      referenced_security_group_id = string # preferably optional(string) but reqs tf v1.3+
+    })
+  )
+  default     = {}
+  description = "Extra ingress rules for ECS tasks (beyond connectivity from ALB)"
+}
+
+variable "ecs_tasks_extra_egress_rules_map" {
+  type = map(
+    object({
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string
+      cidr_ipv6                    = string
+      prefix_list_id               = string
+      referenced_security_group_id = string
+    })
+  )
+  default = {
+    global_https_out_ipv4 = {
+      description                  = "Global HTTPS outbound IPv4"
+      from_port                    = "443"
+      to_port                      = "443"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = "0.0.0.0/0"
+      cidr_ipv6                    = null # not needed if optional(string) implemented above
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
     }
-  ]
-  description = "Egress rules for load balancer"
+    global_https_out_ipv6 = {
+      description                  = "Global HTTPS outbound IPv6"
+      from_port                    = "443"
+      to_port                      = "443"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = null # not needed if optional(string) implemented above
+      cidr_ipv6                    = "::/0"
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
+    }
+  }
+  description = "Extra egress rules for Fargate tasks (beyond connectivity to RDS) (must allow outbound to container registry; also see https://docs.retool.com/docs/network-storage-requirements)"
 }
 
 variable "alb_idle_timeout" {

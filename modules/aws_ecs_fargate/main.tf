@@ -69,8 +69,8 @@ resource "aws_ecs_service" "retool" {
   }
 
   network_configuration {
-    subnets         = var.subnet_ids
-    security_groups = [aws_security_group.alb.id]
+    subnets         = var.ecs_tasks_subnet_ids
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 }
 
@@ -130,8 +130,8 @@ resource "aws_ecs_service" "jobs_runner" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = var.subnet_ids
-    security_groups = [aws_security_group.alb.id]
+    subnets         = var.ecs_tasks_subnet_ids
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 }
 
