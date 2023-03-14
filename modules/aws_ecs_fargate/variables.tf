@@ -15,9 +15,9 @@ variable "vpc_id" {
   description = "Select a VPC that allows instances access to the Internet."
 }
 
-variable "subnet_ids" {
+variable "ecs_tasks_subnet_ids" {
   type        = list(string)
-  description = "Select at least two subnets in your selected VPC."
+  description = "Subnets for Fargate tasks (probably private)."
 }
 
 variable "deployment_name" {
@@ -25,15 +25,12 @@ variable "deployment_name" {
   description = "Name prefix for created resources. Defaults to `retool`."
   default     = "retool"
 }
-variable "public_subnet" {
-  type        = string
-  description = "Public subnet for NAT Gateway."
+
+variable "alb_subnet_ids" {
+  type        = list(string)
+  description = "Public subnets for Load Balancer."
 }
 
-variable "internet_gateway" {
-  type        = string
-  description = "Internet gateway attached to VPC."
-}
 variable "ecs_insights_enabled" {
   type        = string
   default     = "enabled"
@@ -90,7 +87,7 @@ variable "rds_instance_class" {
 
 variable "rds_publicly_accessible" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether the RDS instance should be publicly accessible. Defaults to false."
 }
 
@@ -98,6 +95,11 @@ variable "rds_performance_insights_enabled" {
   type        = bool
   default     = true
   description = "Whether to enable Performance Insights for RDS. Defaults to true."
+}
+
+variable "rds_subnet_ids" {
+  type        = list(string)
+  description = "Select at least two subnets for the RDS instance."
 }
 
 variable "secret_length" {
@@ -136,75 +138,104 @@ variable "alb_listener_certificate_arn" {
   default     = null
 }
 
-locals {
-  stack_name                          = "${var.deployment_name}"
-  database_name                       =  aws_db_instance.this.db_name
-  retool_image                        = "${var.ecs_retool_image}"
-  retool_alb_ingress_port             = var.alb_listener_certificate_arn != null ? "443" : var.retool_alb_ingress_port
-  retool_alb_listener_protocol        = var.alb_listener_certificate_arn != null ? "HTTPS" : var.aws_lb_listener_protocol
-  retool_alb_listener_ssl_policy      = var.alb_listener_certificate_arn != null ? var.alb_listener_ssl_policy : null
-  retool_alb_listener_certificate_arn = var.alb_listener_certificate_arn
-  retool_url_port                     = local.retool_alb_ingress_port != "443" ? ":${local.retool_alb_ingress_port}" : ""
-
-  retool_jwt_secret = {
-    password = aws_secretsmanager_secret_version.jwt_secret
-  }
-  retool_encryption_key_secret = {
-    password = random_string.encryption_key.result
-  }
-  retool_rds_secret = {
-    username = "retool"
-    password = aws_secretsmanager_secret.rds_password
-  }
-}
-
-variable "alb_ingress_rules" {
-  type = list(
+variable "alb_ingress_rules_map" {
+  type = map(
     object({
-      description      = string
-      from_port        = string
-      to_port          = string
-      protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string # preferably optional(string) but reqs tf v1.3+
+      cidr_ipv6                    = string # preferably optional(string) but reqs tf v1.3+
+      prefix_list_id               = string # preferably optional(string) but reqs tf v1.3+
+      referenced_security_group_id = string # preferably optional(string) but reqs tf v1.3+
     })
   )
-  default = [
-    {
-      description      = "Global HTTP inbound"
-      from_port        = "80"
-      to_port          = "80"
-      protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
+  default = {
+    global_http_in = {
+      description                  = "Global HTTP inbound"
+      from_port                    = "80"
+      to_port                      = "80"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = "0.0.0.0/0"
+      cidr_ipv6                    = "::/0"
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
     }
-  ]
+  }
   description = "Ingress rules for load balancer"
 }
 
-
-variable "alb_egress_rules" {
-  type = list(
+variable "alb_extra_egress_rules_map" {
+  type = map(
     object({
-      description      = string
-      from_port        = string
-      to_port          = string
-      protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string
+      cidr_ipv6                    = string
+      prefix_list_id               = string
+      referenced_security_group_id = string
     })
   )
-  default = [
-    {
-      description      = "Global outbound"
-      from_port        = "0"
-      to_port          = "0"
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
+  default     = {}
+  description = "Extra egress rules (beyond connectivity to Fargate tasks) for load balancer"
+}
+
+variable "ecs_tasks_extra_ingress_rules_map" {
+  type = map(
+    object({
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string # preferably optional(string) but reqs tf v1.3+
+      cidr_ipv6                    = string # preferably optional(string) but reqs tf v1.3+
+      prefix_list_id               = string # preferably optional(string) but reqs tf v1.3+
+      referenced_security_group_id = string # preferably optional(string) but reqs tf v1.3+
+    })
+  )
+  default     = {}
+  description = "Extra ingress rules for ECS tasks (beyond connectivity from ALB)"
+}
+
+variable "ecs_tasks_extra_egress_rules_map" {
+  type = map(
+    object({
+      description                  = string
+      from_port                    = string
+      to_port                      = string
+      ip_protocol                  = string
+      cidr_ipv4                    = string
+      cidr_ipv6                    = string
+      prefix_list_id               = string
+      referenced_security_group_id = string
+    })
+  )
+  default = {
+    global_https_out_ipv4 = {
+      description                  = "Global HTTPS outbound IPv4"
+      from_port                    = "443"
+      to_port                      = "443"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = "0.0.0.0/0"
+      cidr_ipv6                    = null # not needed if optional(string) implemented above
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
     }
-  ]
-  description = "Egress rules for load balancer"
+    global_https_out_ipv6 = {
+      description                  = "Global HTTPS outbound IPv6"
+      from_port                    = "443"
+      to_port                      = "443"
+      ip_protocol                  = "tcp"
+      cidr_ipv4                    = null # not needed if optional(string) implemented above
+      cidr_ipv6                    = "::/0"
+      prefix_list_id               = null # not needed if optional(string) implemented above
+      referenced_security_group_id = null # not needed if optional(string) implemented above
+    }
+  }
+  description = "Extra egress rules for Fargate tasks (beyond connectivity to RDS) (must allow outbound to container registry; also see https://docs.retool.com/docs/network-storage-requirements)"
 }
 
 variable "alb_idle_timeout" {
