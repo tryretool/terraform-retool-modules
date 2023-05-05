@@ -111,7 +111,7 @@ variable "private_dns_namespace_id" {
 
 variable "temporal_image" {
   type = string
-  default = "tryretool/one-offs:retool-temporal-1.1.2-a"
+  default = "tryretool/one-offs:retool-temporal-1.1.2"
   description = "Docker image to use for Temporal cluster."
 }
 
