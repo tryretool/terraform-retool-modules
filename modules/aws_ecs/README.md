@@ -50,7 +50,8 @@ To configure the EC instance size, set the `instance_type` input variable (e.g. 
 To configure the RDS instance class, set the `instance_class` input variable (e.g. `db.m6g.large`).
 
 ## Advanced Configuration
-
+**Bring your own Temporal Cluster**
+To configure your own Temporal cluster, set the `use_existing_temporal_cluster` to `true` and configure your Temporal Cluster's Frontend service endpoint (and TLS if needed) using `temporal_cluster_config`. If configuring mTLS, we expect the cert and key values to be base64-encoded strings.
 ### Security Groups
 
 To customize the ingress and egress rules on the security groups, you can override specific input variable defaults.

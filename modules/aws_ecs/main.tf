@@ -48,6 +48,14 @@ resource "aws_ecs_service" "retool" {
     container_name   = "retool"
     container_port   = 3000
   }
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
+
   dynamic "network_configuration" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
@@ -66,6 +74,14 @@ resource "aws_ecs_service" "jobs_runner" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_jobs_runner.arn
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
+
   dynamic "network_configuration" {
 
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
@@ -87,6 +103,13 @@ resource "aws_ecs_service" "workflows_backend" {
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_workflows_backend[0].arn
   
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
+
   service_registries {
     registry_arn = aws_service_discovery_service.retool_workflow_backend_service[0].arn
   }
@@ -110,6 +133,13 @@ resource "aws_ecs_service" "workflows_worker" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_workflows_worker[0].arn
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
   dynamic "network_configuration" {
 
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
@@ -130,16 +160,16 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
   execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
   network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_cpu : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_memory : null
+  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
+  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
         name      = "retool-jobs-runner"
         essential = true
         image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_cpu : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_memory : null
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
         command = [
           "./docker_scripts/start_api.sh"
         ]
@@ -180,16 +210,16 @@ resource "aws_ecs_task_definition" "retool" {
   execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
   network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_cpu : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_memory : null
+  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
+  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
         name      = "retool"
         essential = true
         image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_cpu : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_memory : null
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["main"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["main"]["memory"] : null
         command = [
           "./docker_scripts/start_api.sh"
         ]
@@ -236,16 +266,16 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
   network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_cpu : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_memory : null
+  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
+  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
-        name      = "retool"
+        name      = "retool-workflows-backend"
         essential = true
         image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_cpu : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_memory : null
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
         command = [
           "./docker_scripts/start_api.sh"
         ]
@@ -291,16 +321,16 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
   network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_cpu : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_memory : null
+  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
+  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
-        name      = "retool"
+        name      = "retool-workflows-worker"
         essential = true
         image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_cpu : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_memory : null
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
         command = [
           "./docker_scripts/start_api.sh"
         ]
@@ -372,7 +402,7 @@ resource "aws_service_discovery_service" "retool_workflow_backend_service" {
 }
 
 module "temporal" {
-  count = var.workflows_enabled ? 1 : 0
+  count = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
   source = "./temporal"
   
   deployment_name   = "${var.deployment_name}-temporal"
@@ -384,4 +414,5 @@ module "temporal" {
   aws_ecs_cluster_id = aws_ecs_cluster.this.id
   launch_type = var.launch_type
   container_sg_id = aws_security_group.containers.id
+  aws_ecs_capacity_provider_name = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
 }

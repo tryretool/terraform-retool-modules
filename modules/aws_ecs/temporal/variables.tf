@@ -136,6 +136,11 @@ variable "container_sg_id" {
   description = "ID for security group to use for ECS service"
 }
 
+variable "aws_ecs_capacity_provider_name" {
+  type = string
+  description = "Name for ECS capacity provider for EC2"
+}
+
 variable "additional_env_vars" {
   type        = list(map(string))
   default     = []

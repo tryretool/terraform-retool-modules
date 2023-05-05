@@ -41,6 +41,10 @@ locals {
       {
         "name": "DYNAMIC_CONFIG_FILE_PATH",
         "value": "/etc/temporal/ecs/dynamic_config/dynamicconfig-sql.yaml"
+      },
+      {
+        "name": "ECS_DEPLOYED",
+        "value": "true"
       }
     ]
   )

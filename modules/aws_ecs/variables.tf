@@ -40,7 +40,7 @@ variable "max_instance_count" {
 variable "min_instance_count" {
   type        = number
   description = "Min/desired number of EC2 instances. Defaults to 4."
-  default     = 4
+  default     = 3
 }
 
 variable "deployment_name" {
@@ -61,16 +61,30 @@ variable "ecs_retool_image" {
   default     = "tryretool/backend:2.116.3"
 }
 
-variable "ecs_task_cpu" {
-  type        = number
-  default     = 1024
-  description = "Amount of CPU provisioned for each task. Defaults to 1024."
-}
-
-variable "ecs_task_memory" {
-  type        = number
-  default     = 4096
-  description = "Amount of memory provisioned for each task. Defaults to 4096."
+variable "ecs_task_resource_map" {
+  type        = map(object({
+    cpu = number
+    memory = number
+  }))
+  default     = {
+    main = {
+      cpu = 2048
+      memory = 4096
+    },
+    jobs_runner = {
+      cpu = 1024
+      memory = 2048
+    },
+    workflows_backend = {
+      cpu = 2048
+      memory = 4096
+    }
+    workflows_worker = {
+      cpu = 2048
+      memory = 4096
+    }
+  }
+  description = "Amount of CPU and Memory provisioned for each task."
 }
 
 variable "force_deployment" {

@@ -9,15 +9,14 @@ resource "aws_ecs_cluster" "this" {
 
 # Fargate capacity provider
 resource "aws_ecs_cluster_capacity_providers" "this" {
-  count        = var.launch_type == "FARGATE" ? 1 : 0
   cluster_name = aws_ecs_cluster.this.name
 
-  capacity_providers = ["FARGATE"]
+  capacity_providers = var.launch_type == "FARGATE" ? ["FARGATE"] : [aws_ecs_capacity_provider.this[0].name]
 
   default_capacity_provider_strategy {
     base              = 1
     weight            = 100
-    capacity_provider = "FARGATE"
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 }
 

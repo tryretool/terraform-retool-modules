@@ -68,6 +68,13 @@ resource "aws_ecs_service" "retool_temporal" {
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_temporal[each.key].arn
 
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : var.aws_ecs_capacity_provider_name
+  }
+
   dynamic "service_registries" {
     for_each = each.key == "frontend" ? toset([1]) : toset([])
     content {
