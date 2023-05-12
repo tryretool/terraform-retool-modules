@@ -1,6 +1,6 @@
-# AWS ECS + EC2 Module
+# AWS ECS
 
-This module deploys an ECS cluster with autoscaling group of EC2 instances.
+This module deploys an ECS cluster on Fargate or with an autoscaling group of EC2 instances.
 
 # Usage
 
