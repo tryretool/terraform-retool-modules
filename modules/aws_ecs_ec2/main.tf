@@ -22,7 +22,7 @@ resource "aws_ecs_cluster" "this" {
 
 data "aws_ami" "this" {
   most_recent = true # get the latest version
-  name_regex = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
+  name_regex  = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
 
   filter {
     name = "virtualization-type"
@@ -65,7 +65,7 @@ resource "aws_launch_configuration" "this" {
 
   # Allow the EC2 instances to access AWS resources on your behalf, using this instance profile and the permissions defined there
   iam_instance_profile = aws_iam_instance_profile.ec2.arn
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -144,11 +144,11 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier                    = "${var.deployment_name}-rds-instance"
+  identifier                   = "${var.deployment_name}-rds-instance"
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
   engine                       = "postgres"
-  engine_version               = "13.7"
+  engine_version               = "12.11"
   db_name                      = "hammerhead_production"
   username                     = aws_secretsmanager_secret_version.rds_username.secret_string
   password                     = aws_secretsmanager_secret_version.rds_password.secret_string
@@ -156,9 +156,9 @@ resource "aws_db_instance" "this" {
   publicly_accessible          = var.rds_publicly_accessible
   vpc_security_group_ids       = [aws_security_group.rds.id]
   performance_insights_enabled = var.rds_performance_insights_enabled
-  
-  skip_final_snapshot          = true
-  apply_immediately           = true
+
+  skip_final_snapshot = true
+  apply_immediately   = true
 }
 
 resource "aws_ecs_service" "retool" {
@@ -221,7 +221,7 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
             {
               name  = "SERVICE_TYPE"
               value = "JOBS_RUNNER"
-            }
+            },
           ]
         )
       }
