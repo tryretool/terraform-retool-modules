@@ -129,6 +129,18 @@ variable "rds_performance_insights_retention_period" {
   description = "The time in days to retain Performance Insights for RDS. Defaults to 14."
 }
 
+variable "rds_auto_minor_version_upgrade" {
+  type        = bool
+  default     = true
+  description = "Whether to enable auto minor version upgrade for RDS. Defaults to true."
+}
+
+variable "rds_engine_version" {
+  type        = string
+  default     = "13.7"
+  description = "The engine version for RDS. Defaults to 13.7."
+}
+
 variable "use_exising_temporal_cluster" {
   type        = bool
   default     = false
