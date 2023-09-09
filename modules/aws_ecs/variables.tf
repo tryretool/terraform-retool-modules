@@ -57,8 +57,14 @@ variable "retool_license_key" {
 
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `2.106.2`"
+  description = "Container image for desired Retool version. Defaults to `2.116.3`"
   default     = "tryretool/backend:2.116.3"
+}
+
+variable "ecs_code_executor_image" {
+  type        = string
+  description = "Container image for desired code_executor version."
+  default     = "tryretool/code-executor-one-offs:3.13.0-c703e0a"
 }
 
 variable "ecs_task_resource_map" {
@@ -80,6 +86,11 @@ variable "ecs_task_resource_map" {
       memory = 4096
     }
     workflows_worker = {
+      cpu = 2048
+      memory = 4096
+    }
+
+    code_executor = {
       cpu = 2048
       memory = 4096
     }
@@ -199,6 +210,12 @@ variable "workflows_enabled" {
   type        = bool
   default     = false
   description = "Whether to enable Workflows-specific containers, services, etc.. Defaults to false."
+}
+
+variable "code_executor_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable code_executor service to support Python execution. Defaults to false."
 }
 
 variable "log_retention_in_days" {
