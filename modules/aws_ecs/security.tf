@@ -1,6 +1,7 @@
 resource "aws_security_group" "rds" {
   name        = "${var.deployment_name}-rds-security-group"
   description = "Retool database security group"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Retool ECS Postgres Inbound"
@@ -26,6 +27,7 @@ resource "aws_security_group" "temporal_aurora" {
   count       = var.workflows_enabled ? 1 : 0
   name        = "${var.deployment_name}-temporal-rds-security-group"
   description = "Retool database security group"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Retool Temporal ECS Postgres Inbound"
