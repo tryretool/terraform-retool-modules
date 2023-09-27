@@ -3,7 +3,7 @@ resource "aws_lb" "this" {
   idle_timeout = var.alb_idle_timeout
 
   security_groups = [aws_security_group.alb.id]
-  subnets         = var.subnet_ids
+  subnets         = var.public_subnet_ids
 }
 
 resource "aws_lb_listener" "this" {

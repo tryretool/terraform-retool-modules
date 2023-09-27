@@ -11,6 +11,10 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_vpc" "selected" {
+  id = var.vpc_id
+}
+
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.deployment_name}-ecs-log-group"
   retention_in_days = var.log_retention_in_days
@@ -18,7 +22,7 @@ resource "aws_cloudwatch_log_group" "this" {
 
 resource "aws_db_subnet_group" "this" {
   name = "${var.deployment_name}-retool"
-  subnet_ids = var.subnet_ids
+  subnet_ids = var.private_subnet_ids
 }
 
 resource "aws_db_instance" "this" {
@@ -66,7 +70,7 @@ resource "aws_ecs_service" "retool" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {    
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -93,7 +97,7 @@ resource "aws_ecs_service" "jobs_runner" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {    
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -124,7 +128,7 @@ resource "aws_ecs_service" "workflows_backend" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {    
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -151,7 +155,7 @@ resource "aws_ecs_service" "workflows_worker" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {    
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -413,7 +417,7 @@ module "temporal" {
   
   deployment_name   = "${var.deployment_name}-temporal"
   vpc_id = var.vpc_id
-  subnet_ids = var.subnet_ids
+  subnet_ids = var.private_subnet_ids
   private_dns_namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
   aws_cloudwatch_log_group_id = aws_cloudwatch_log_group.this.id
   aws_region = var.aws_region
