@@ -1,6 +1,7 @@
 resource "aws_security_group" "rds" {
   name        = "${var.deployment_name}-rds-security-group"
   description = "Retool database security group"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Retool ECS Postgres Inbound"
