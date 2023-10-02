@@ -4,6 +4,18 @@ variable "commandtoexecute" {
   default     = ""
 }
 
+variable "db_instance_size" {
+  type = string
+  description = "Instance size for external Azure Postgres server"
+  default = "GP_Standard_D4s_v3"
+}
+
+variable "external_psql" {
+    type = bool
+    description = "Option to create an Azure Postgres server for retool backend"
+    default = false
+}
+
 variable "security_rules" {
   type = list(
     object({
@@ -71,6 +83,24 @@ variable "instance_size" {
   type        = string
   description = "Retool instance size"
   default     = "Standard_D4_v4"
+}
+
+variable "psql_password" {
+  type = string
+  description = "Admin password sername for postgres database"
+  default = "mysupersecurepassword123"
+}
+
+variable "psql_subnet_cidr" {
+  type = list(string)
+  description = "CIDR block for database subnet"
+  default = [ "10.0.2.0/24" ]
+}
+
+variable "psql_user" {
+  type = string
+  description = "Admin username for postgres database"
+  default = "retool"
 }
 
 variable "resource_group_name" {
