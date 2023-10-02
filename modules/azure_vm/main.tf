@@ -48,7 +48,7 @@ resource "azurerm_network_interface" "this" {
     name                          = "retool-ni-config"
     subnet_id                     = data.azurerm_subnet.selected.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.this.id
+    public_ip_address_id          = azurerm_public_ip.this.id
   }
 }
 
@@ -118,7 +118,9 @@ resource "azurerm_virtual_machine_extension" "this" {
 
   settings = <<SETTINGS
   {
-    "commandToExecute" : "git clone https://github.com/tryretool/retool-onpremise.git && cd retool-onpremise && echo FROM tryretool/backend:${var.version_number} > Dockerfile && echo CMD ./docker-scripts/start_api.sh >> Dockerfile && ./install.sh && docker-compose up -d && exit 0"
+    "script": "${base64encode(templatefile("vm_script.sh", {
+        version_number = "${var.version_number}"
+    }))}"
   }
   SETTINGS
 
