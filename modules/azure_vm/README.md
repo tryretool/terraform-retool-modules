@@ -1,8 +1,7 @@
-# AWS EC2 Standalone Deployment
+# Azure VM Standalone Deployment
 
 ## Requirements
 
-- RDS instance with port, host, username, and password
 - VPC with desired subnets
 
 ## Usage
@@ -74,9 +73,11 @@ docker-ps
 
 11. Access your Retool instance on the public IP that is given via the resource creation outputs. If no SSL certificate has been configured you need to access the instance on port 3000 (append :3000 to the end of the URL) and via http.
 
-### Security Group
+### Security Rules
 
 You can configure the security group ingress and egress rules using input variables:
+
+For example, to create a Retool instance accessible from anywhere, you can use the following value for `security_rules` which enables inbound traffic on ports (`30`, `443`, `22`, and `3000`) and all outbound traffic. Note that this is also the default behavior of this module.
 
 ```
   security_rules = [
@@ -127,4 +128,3 @@ You can configure the security group ingress and egress rules using input variab
   ]
 ```
 
-By default, this module creates a publicly-accessible security group that enables inbound traffic on ports (`30`, `443`, `22`, and `3000`) and all outbound traffic.
