@@ -127,7 +127,7 @@ resource "azurerm_virtual_machine_extension" "this" {
 }
 
 resource "azurerm_subnet" "this" {
-  count = var.external_psql ? 1 : 0
+  count                = var.external_psql ? 1 : 0
   name                 = "psql-flexible-sn"
   resource_group_name  = data.azurerm_resource_group.selected.name
   virtual_network_name = data.azurerm_virtual_network.selected.name
@@ -144,13 +144,13 @@ resource "azurerm_subnet" "this" {
   }
 }
 resource "azurerm_private_dns_zone" "this" {
-  count = var.external_psql ? 1 : 0
+  count               = var.external_psql ? 1 : 0
   name                = "retool.postgres.database.azure.com"
   resource_group_name = data.azurerm_resource_group.selected.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "this" {
-  count = var.external_psql ? 1 : 0
+  count                 = var.external_psql ? 1 : 0
   name                  = "retool-internal.com"
   private_dns_zone_name = azurerm_private_dns_zone.this[0].name
   virtual_network_id    = data.azurerm_virtual_network.selected.id
@@ -158,7 +158,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "this" {
 }
 
 resource "azurerm_postgresql_flexible_server" "this" {
-  count = var.external_psql ? 1 : 0
+  count                  = var.external_psql ? 1 : 0
   name                   = "retool-psqlflexibleserver"
   resource_group_name    = data.azurerm_resource_group.selected.name
   location               = data.azurerm_resource_group.selected.location
@@ -177,7 +177,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
 }
 
 resource "azurerm_postgresql_flexible_server_database" "this" {
-  count = var.external_psql ? 1 : 0
+  count     = var.external_psql ? 1 : 0
   name      = "retool"
   server_id = azurerm_postgresql_flexible_server.this[0].id
   collation = "en_US.utf8"

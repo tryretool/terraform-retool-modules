@@ -5,15 +5,15 @@ variable "commandtoexecute" {
 }
 
 variable "db_instance_size" {
-  type = string
+  type        = string
   description = "Instance size for external Azure Postgres server"
-  default = "GP_Standard_D4s_v3"
+  default     = "GP_Standard_D4s_v3"
 }
 
 variable "external_psql" {
-    type = bool
-    description = "Option to create an Azure Postgres server for retool backend"
-    default = false
+  type        = bool
+  description = "Option to create an Azure Postgres server for retool backend"
+  default     = false
 }
 
 variable "security_rules" {
@@ -86,21 +86,21 @@ variable "instance_size" {
 }
 
 variable "psql_password" {
-  type = string
+  type        = string
   description = "Admin password sername for postgres database"
-  default = "mysupersecurepassword123"
+  default     = "mysupersecurepassword123"
 }
 
 variable "psql_subnet_cidr" {
-  type = list(string)
+  type        = list(string)
   description = "CIDR block for database subnet"
-  default = [ "10.0.2.0/24" ]
+  default     = ["10.0.2.0/24"]
 }
 
 variable "psql_user" {
-  type = string
+  type        = string
   description = "Admin username for postgres database"
-  default = "retool"
+  default     = "retool"
 }
 
 variable "resource_group_name" {
