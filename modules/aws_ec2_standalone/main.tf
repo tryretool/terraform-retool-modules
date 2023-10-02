@@ -94,7 +94,7 @@ resource "aws_instance" "this" {
 
   # Rewrite Dockerfile
   echo FROM tryretool/backend:${var.version_number} > Dockerfile
-  echo CMD ./docker-scripts/start_api.sh >> Dockerfile
+  echo CMD ./docker_scripts/start_api.sh >> Dockerfile
 
   # Initialize Docker and Retool Installation
   ./install.sh
