@@ -7,6 +7,7 @@
 ## Usage
 
 1. Directly use our module in your existing Terraform configuration and provide the required variables
+  - If you want to use an external Postgres instance (Flexible Server), set external_psql to true.  This is recommended for production deployments.
 
 ```
 terraform {
@@ -25,6 +26,8 @@ provider "azurerm" {
 
 module "retool" {
   source               = "git@github.com:tryretool/retool-terraform.git//modules/azure_vm"
+  external_psql        = "true" | "false"
+  psql_password        = "<secure-password-for-external-psql>"
   resource_group_name  = "<resource-group-name>"
   subnet_name          = "<subnet-name>"
   version_number       = "<desired-retool-version eg 3.12.4>"
@@ -64,12 +67,13 @@ vim Dockerfile
 docker-ps
 ```
 
-9. Modify your environment variables. If you have an external RDS database (strongly recommended), replace the `POSTGRES_` environment variables with the new ones.
+9. Modify your environment variables in `docker.env`. If you have an external RDS database (strongly recommended), replace the `POSTGRES_` environment variables with the new ones.
 
 - If testing out your instance for the first time without SSL/HTTPS, you should uncomment `# COOKIE_INSECURE = true`
 - Replace your `LICENSE_KEY` with your provided Retool license key
+- If using Postgres Flexible server, add `POSTGRES_SSL_ENABLED=true`
 
-10. Add any additional configuration needed. You can refer to our documentation for [all additional environment variables](https://docs.retool.com/docs/environment-variables).
+10. Add any additional configuration needed to the `docker.env` file. You can refer to our documentation for [all additional environment variables](https://docs.retool.com/docs/environment-variables).
 
 11. Access your Retool instance on the public IP that is given via the resource creation outputs. If no SSL certificate has been configured you need to access the instance on port 3000 (append :3000 to the end of the URL) and via http.
 

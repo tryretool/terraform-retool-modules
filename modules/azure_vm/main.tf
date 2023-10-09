@@ -183,3 +183,10 @@ resource "azurerm_postgresql_flexible_server_database" "this" {
   collation = "en_US.utf8"
   charset   = "utf8"
 }
+
+resource "azurerm_postgresql_flexible_server_configuration" "this" {
+  count     = var.external_psql ? 1 : 0
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.this[0].id
+  value     = "UUID-OSSP"
+}
