@@ -26,7 +26,7 @@ resource "aws_db_instance" "this" {
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
   engine                       = "postgres"
-  engine_version               = "13.7"
+  engine_version               = "13.10"
   db_name                      = "hammerhead_production"
   username                     = aws_secretsmanager_secret_version.rds_username.secret_string
   password                     = aws_secretsmanager_secret_version.rds_password.secret_string
