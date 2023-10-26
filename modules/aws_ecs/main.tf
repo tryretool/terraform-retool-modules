@@ -2,13 +2,9 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
-}
-
-provider "aws" {
-  region = var.aws_region
 }
 
 resource "aws_cloudwatch_log_group" "this" {
@@ -25,6 +21,7 @@ resource "aws_db_instance" "this" {
   identifier                    = "${var.deployment_name}-rds-instance"
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
+  ca_cert_identifier           = var.rds_ca_cert_identifier
   engine                       = "postgres"
   engine_version               = "13.7"
   db_name                      = "hammerhead_production"

@@ -1,6 +1,6 @@
 module "temporal_aurora_rds" {
   source  = "terraform-aws-modules/rds-aurora/aws"
-  version = "8.0.2"
+  version = "8.5.0"
 
   name="${var.deployment_name}-temporal-rds-instance"
   engine            = "aurora-postgresql"
