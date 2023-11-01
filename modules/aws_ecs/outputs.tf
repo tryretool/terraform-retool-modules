@@ -42,3 +42,8 @@ output "rds_instance_name" {
   value       = aws_db_instance.this.db_name
   description = "Name of RDS instance"
 }
+
+output "target_group_arn" {
+  value       = aws_lb_target_group.this.arn
+  description = "ARN for alb target group"
+}

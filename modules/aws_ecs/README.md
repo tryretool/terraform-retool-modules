@@ -115,3 +115,59 @@ additional_env_vars = [
     }
 ]
 ```
+
+### SSL Certificate and HTTP redirect to HTTPS
+The following example terraform snippets show how to set up an http to https redirect, as well as an https listener on the ALB.
+Add this to the module declaration:
+```
+  alb_http_redirect = true
+  alb_ingress_rules = [
+    {
+      description      = "Global HTTP inbound"
+      from_port        = "80"
+      to_port          = "80"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    },
+    {
+      description      = "Global HTTP inbound"
+      from_port        = "443"
+      to_port          = "443"
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+
+```
+
+The following creates a certificate and an https listener using that cert:
+```
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "retool.example.com"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = module.retool.ecs_alb_arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = module.retool.target_group_arn
+  }
+}
+
+output "domain_validation" {
+  value = aws_acm_certificate.cert.domain_validation_options
+}
+```
+

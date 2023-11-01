@@ -62,25 +62,25 @@ variable "ecs_retool_image" {
 }
 
 variable "ecs_task_resource_map" {
-  type        = map(object({
-    cpu = number
+  type = map(object({
+    cpu    = number
     memory = number
   }))
-  default     = {
+  default = {
     main = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     },
     jobs_runner = {
-      cpu = 1024
+      cpu    = 1024
       memory = 2048
     },
     workflows_backend = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
     workflows_worker = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
   }
@@ -136,11 +136,11 @@ variable "use_exising_temporal_cluster" {
 }
 
 variable "launch_type" {
-  type        = string
-  default     = "FARGATE"
+  type    = string
+  default = "FARGATE"
 
   validation {
-    condition = contains(["FARGATE", "EC2"], var.launch_type)
+    condition     = contains(["FARGATE", "EC2"], var.launch_type)
     error_message = "launch_type must be either \"FARGATE\" or \"EC2\""
   }
 }
@@ -155,20 +155,20 @@ variable "launch_type" {
 # tls_key: For mTLS only. Base64 encoded string of private tls key
 variable "temporal_cluster_config" {
   type = object({
-      namespace   = string
-      host        = string
-      port        = string
-      tls_enabled = bool
-      tls_crt     = optional(string)
-      tls_key     = optional(string)
-    })
+    namespace   = string
+    host        = string
+    port        = string
+    tls_enabled = bool
+    tls_crt     = optional(string)
+    tls_key     = optional(string)
+  })
 
-    default = {
-      namespace   = "workflows"
-      host        = "temporal.retoolsvc"
-      port        = "7233"
-      tls_enabled = false
-    }
+  default = {
+    namespace   = "workflows"
+    host        = "temporal.retoolsvc"
+    port        = "7233"
+    tls_enabled = false
+  }
 }
 
 variable "temporal_aurora_username" {
@@ -211,6 +211,12 @@ variable "alb_idle_timeout" {
   type        = number
   default     = 60
   description = "The time in seconds that the connection is allowed to be idle. Defaults to 60."
+}
+
+variable "alb_http_redirect" {
+  type        = bool
+  default     = false
+  description = "Boolean for if http should redirect to https"
 }
 
 variable "cookie_insecure" {
@@ -269,46 +275,46 @@ variable "container_ingress_rules" {
   )
   default = {
     first = {
-      description      = "Global HTTP inbound ipv4"
-      from_port        = "80"
-      to_port          = "3000"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "Global HTTP inbound ipv4"
+      from_port   = "80"
+      to_port     = "3000"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     second = {
-      description      = "Global HTTP inbound ipv6"
-      from_port        = "80"
-      to_port          = "3000"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "Global HTTP inbound ipv6"
+      from_port       = "80"
+      to_port         = "3000"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     },
     third = {
-      description      = "Global HTTPS inbound ipv4"
-      from_port        = "443"
-      to_port          = "3000"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "Global HTTPS inbound ipv4"
+      from_port   = "443"
+      to_port     = "3000"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     fourth = {
-      description      = "Global HTTPS inbound ipv4"
-      from_port        = "443"
-      to_port          = "3000"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "Global HTTPS inbound ipv4"
+      from_port       = "443"
+      to_port         = "3000"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     },
     fifth = {
-      description      = "SSH inbound ipv4"
-      from_port        = "22"
-      to_port          = "22"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "SSH inbound ipv4"
+      from_port   = "22"
+      to_port     = "22"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     sixth = {
-      description      = "SSH inbound ipv6"
-      from_port        = "22"
-      to_port          = "22"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "SSH inbound ipv6"
+      from_port       = "22"
+      to_port         = "22"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     }
   }
   description = "Ingress rules for EC2 instances in autoscaling group or ECS services in Fargate"
