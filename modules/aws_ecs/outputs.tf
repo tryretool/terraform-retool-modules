@@ -42,3 +42,7 @@ output "rds_instance_name" {
   value       = aws_db_instance.this.db_name
   description = "Name of RDS instance"
 }
+
+output "sg_containers_id" {
+  value = aws_security_group.containers.id
+}
