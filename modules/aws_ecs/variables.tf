@@ -62,25 +62,25 @@ variable "ecs_retool_image" {
 }
 
 variable "ecs_task_resource_map" {
-  type        = map(object({
-    cpu = number
+  type = map(object({
+    cpu    = number
     memory = number
   }))
-  default     = {
+  default = {
     main = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     },
     jobs_runner = {
-      cpu = 1024
+      cpu    = 1024
       memory = 2048
     },
     workflows_backend = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
     workflows_worker = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
   }
@@ -136,17 +136,17 @@ variable "use_exising_temporal_cluster" {
 }
 
 variable "launch_type" {
-  type        = string
-  default     = "FARGATE"
+  type    = string
+  default = "FARGATE"
 
   validation {
-    condition = contains(["FARGATE", "EC2"], var.launch_type)
+    condition     = contains(["FARGATE", "EC2"], var.launch_type)
     error_message = "launch_type must be either \"FARGATE\" or \"EC2\""
   }
 }
 
 # namescape: temporal namespace to use for Retool Workflows. We recommend this is only used by Retool.
-# If use_existing_temporal_cluster == true this should be config for currently existing cluster. 
+# If use_existing_temporal_cluster == true this should be config for currently existing cluster.
 # If use_existing_temporal_cluster == false, you should use the defaults.
 # host: hostname for Temporal Frontend service
 # port: port for Temporal Frontend service
@@ -155,20 +155,20 @@ variable "launch_type" {
 # tls_key: For mTLS only. Base64 encoded string of private tls key
 variable "temporal_cluster_config" {
   type = object({
-      namespace   = string
-      host        = string
-      port        = string
-      tls_enabled = bool
-      tls_crt     = optional(string)
-      tls_key     = optional(string)
-    })
+    namespace   = string
+    host        = string
+    port        = string
+    tls_enabled = bool
+    tls_crt     = optional(string)
+    tls_key     = optional(string)
+  })
 
-    default = {
-      namespace   = "workflows"
-      host        = "temporal.retoolsvc"
-      port        = "7233"
-      tls_enabled = false
-    }
+  default = {
+    namespace   = "workflows"
+    host        = "temporal.retoolsvc"
+    port        = "7233"
+    tls_enabled = false
+  }
 }
 
 variable "temporal_aurora_username" {
@@ -269,46 +269,46 @@ variable "container_ingress_rules" {
   )
   default = {
     first = {
-      description      = "Global HTTP inbound ipv4"
-      from_port        = "80"
-      to_port          = "3000"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "Global HTTP inbound ipv4"
+      from_port   = "80"
+      to_port     = "3000"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     second = {
-      description      = "Global HTTP inbound ipv6"
-      from_port        = "80"
-      to_port          = "3000"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "Global HTTP inbound ipv6"
+      from_port       = "80"
+      to_port         = "3000"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     },
     third = {
-      description      = "Global HTTPS inbound ipv4"
-      from_port        = "443"
-      to_port          = "3000"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "Global HTTPS inbound ipv4"
+      from_port   = "443"
+      to_port     = "3000"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     fourth = {
-      description      = "Global HTTPS inbound ipv4"
-      from_port        = "443"
-      to_port          = "3000"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "Global HTTPS inbound ipv4"
+      from_port       = "443"
+      to_port         = "3000"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     },
     fifth = {
-      description      = "SSH inbound ipv4"
-      from_port        = "22"
-      to_port          = "22"
-      protocol         = "tcp"
-      cidr_block       = "0.0.0.0/0"
+      description = "SSH inbound ipv4"
+      from_port   = "22"
+      to_port     = "22"
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
     },
     sixth = {
-      description      = "SSH inbound ipv6"
-      from_port        = "22"
-      to_port          = "22"
-      protocol         = "tcp"
-      ipv6_cidr_block  = "::/0"
+      description     = "SSH inbound ipv6"
+      from_port       = "22"
+      to_port         = "22"
+      protocol        = "tcp"
+      ipv6_cidr_block = "::/0"
     }
   }
   description = "Ingress rules for EC2 instances in autoscaling group or ECS services in Fargate"
@@ -322,8 +322,9 @@ variable "container_egress_rules" {
       from_port        = string
       to_port          = string
       protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
     })
   )
   default = [
@@ -343,12 +344,13 @@ variable "container_egress_rules" {
 variable "alb_ingress_rules" {
   type = list(
     object({
-      description      = string
+      description      = optional(string)
       from_port        = string
       to_port          = string
       protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
     })
   )
   default = [
@@ -368,12 +370,13 @@ variable "alb_ingress_rules" {
 variable "alb_egress_rules" {
   type = list(
     object({
-      description      = string
+      description      = optional(string)
       from_port        = string
       to_port          = string
       protocol         = string
-      cidr_blocks      = list(string)
-      ipv6_cidr_blocks = list(string)
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
     })
   )
   default = [
@@ -387,4 +390,162 @@ variable "alb_egress_rules" {
     }
   ]
   description = "Egress rules for load balancer"
+}
+
+variable "alb_certificate_arn" {
+  type        = string
+  default     = null
+  description = "ARN of the ACM certificate to use for HTTPS. Defaults to null."
+}
+
+variable "alb_subnet_ids" {
+  type        = list(string)
+  default     = null
+  description = "Subnet IDs for the load balancer. Defaults to `subnet_ids`."
+}
+
+variable "rds_ingress_rules" {
+  type = list(
+    object({
+      description      = optional(string)
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
+    })
+  )
+  default = [
+    {
+      description = "Retool ECS Postgres Inbound"
+      from_port   = "5432"
+      to_port     = "5432"
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+  description = "Ingress rules for RDS"
+}
+
+
+variable "rds_egress_rules" {
+  type = list(
+    object({
+      description      = optional(string)
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
+    })
+  )
+  default = [
+    {
+      description = "Global outbound"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = [
+        "0.0.0.0/0"
+      ]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Egress rules for RDS"
+}
+
+variable "temporal_aurora_ingress_rules" {
+  type = list(
+    object({
+      description      = optional(string)
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
+    })
+  )
+  default = [
+    {
+      description = "Retool ECS Postgres Inbound"
+      from_port   = "5432"
+      to_port     = "5432"
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+  description = "Ingress rules for temporal Aurora"
+}
+
+
+variable "temporal_aurora_egress_rules" {
+  type = list(
+    object({
+      description      = optional(string)
+      from_port        = string
+      to_port          = string
+      protocol         = string
+      cidr_blocks      = optional(list(string))
+      ipv6_cidr_blocks = optional(list(string))
+      security_groups  = optional(list(string))
+    })
+  )
+  default = [
+    {
+      description = "Global outbound"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = [
+        "0.0.0.0/0"
+      ]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  ]
+  description = "Egress rules for temporal Aurora"
+}
+
+variable "rds_kms_key_id" {
+  type        = string
+  default     = null
+  description = "KMS key ID for encrypting database. Defaults to null."
+}
+
+variable "temporal_aurora_kms_key_id" {
+  type        = string
+  default     = null
+  description = "KMS key ID for encrypting temporal Aurora. Defaults to null."
+}
+
+variable "rds_backup_window" {
+  type        = string
+  default     = null
+  description = "Backup window for RDS. Defaults to null."
+}
+
+variable "rds_backup_retention_in_days" {
+  type        = number
+  default     = null
+  description = "Number of days to retain backups for RDS. Defaults to null."
+}
+
+variable "temporal_aurora_backup_window" {
+  type        = string
+  default     = null
+  description = "Backup window for temporal Aurora. Defaults to null."
+}
+
+variable "temporal_aurora_backup_retention_in_days" {
+  type        = number
+  default     = null
+  description = "Number of days to retain backups for temporal Aurora. Defaults to null."
+}
+
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether to create an internal load balancer. Defaults to false."
 }

@@ -6,70 +6,70 @@
 # tls_key: For mTLS only. Base64 encoded string of private tls key
 variable "temporal_cluster_config" {
   type = object({
-      namespace   = string
-      host        = string
-      port        = string
-      tls_enabled = bool
-      tls_crt     = optional(string)
-      tls_key     = optional(string)
-    })
+    namespace   = string
+    host        = string
+    port        = string
+    tls_enabled = bool
+    tls_crt     = optional(string)
+    tls_key     = optional(string)
+  })
 
-    default = {
-      namespace   = "workflows"
-      host        = "temporal.retoolsvc"
-      port        = "7233"
-      tls_enabled = false
-    }
+  default = {
+    namespace   = "workflows"
+    host        = "temporal.retoolsvc"
+    port        = "7233"
+    tls_enabled = false
+  }
 }
 
 variable "temporal_services_config" {
   type = map(object({
-      request_port = number
-      membership_port = number
-      cpu = number
-      memory = number
+    request_port    = number
+    membership_port = number
+    cpu             = number
+    memory          = number
   }))
 
   default = {
-    frontend: {
-      request_port = 7233,
+    frontend : {
+      request_port    = 7233,
       membership_port = 6933
-      cpu = 512
-      memory = 1024
+      cpu             = 512
+      memory          = 1024
     },
-    history: {
-      request_port = 7234,
+    history : {
+      request_port    = 7234,
       membership_port = 6934
-      cpu = 512
-      memory = 2048
+      cpu             = 512
+      memory          = 2048
     },
-    matching: {
-      request_port = 7235,
+    matching : {
+      request_port    = 7235,
       membership_port = 6935
-      cpu = 512
-      memory = 1024
+      cpu             = 512
+      memory          = 1024
     },
-    worker: {
-      request_port = 7239,
+    worker : {
+      request_port    = 7239,
       membership_port = 6939
-      cpu = 512
-      memory = 1024
+      cpu             = 512
+      memory          = 1024
     }
   }
 }
 
 variable "deployment_name" {
-    type      = string
-    default   = "retool-temporal"
-    description = "Name for Temporal Cluster deployment. Defaults to retool-temporal"
+  type        = string
+  default     = "retool-temporal"
+  description = "Name for Temporal Cluster deployment. Defaults to retool-temporal"
 }
 
 variable "launch_type" {
-  type        = string
-  default     = "FARGATE"
+  type    = string
+  default = "FARGATE"
 
   validation {
-    condition = contains(["FARGATE", "EC2"], var.launch_type)
+    condition     = contains(["FARGATE", "EC2"], var.launch_type)
     error_message = "launch_type must be either \"FARGATE\" or \"EC2\""
   }
 }
@@ -110,8 +110,8 @@ variable "private_dns_namespace_id" {
 }
 
 variable "temporal_image" {
-  type = string
-  default = "tryretool/one-offs:retool-temporal-1.1.2"
+  type        = string
+  default     = "tryretool/one-offs:retool-temporal-1.1.2"
   description = "Docker image to use for Temporal cluster."
 }
 
@@ -132,12 +132,12 @@ variable "subnet_ids" {
 }
 
 variable "container_sg_id" {
-  type = string
+  type        = string
   description = "ID for security group to use for ECS service"
 }
 
 variable "aws_ecs_capacity_provider_name" {
-  type = string
+  type        = string
   description = "Name for ECS capacity provider for EC2"
 }
 
@@ -148,7 +148,7 @@ variable "additional_env_vars" {
 }
 
 variable "aws_ecs_cluster_id" {
-  type = string
+  type        = string
   description = "ID for ECS cluster to deploy Temporal to."
 }
 
@@ -163,4 +163,20 @@ variable "aws_region" {
   description = "AWS region. Defaults to `us-east-1`"
 }
 
+variable "kms_key_id" {
+  type        = string
+  default     = null
+  description = "KMS key ID for encrypting database. Defaults to null."
+}
 
+variable "backup_window" {
+  type        = string
+  default     = null
+  description = "Backup window. Defaults to null."
+}
+
+variable "backup_retention_in_days" {
+  type        = number
+  default     = null
+  description = "Number of days to retain backups. Defaults to null."
+}

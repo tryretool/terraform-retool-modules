@@ -49,40 +49,40 @@ locals {
       },
       # Workflows-specific
       {
-        "name": "WORKFLOW_BACKEND_HOST",
-        "value": "http://workflow-backend.retoolsvc:3000"
+        "name" : "WORKFLOW_BACKEND_HOST",
+        "value" : "http://workflow-backend.retoolsvc:3000"
       },
       {
-        "name": "WORKFLOW_TEMPORAL_CLUSTER_NAMESPACE",
-        "value": var.temporal_cluster_config.namespace
+        "name" : "WORKFLOW_TEMPORAL_CLUSTER_NAMESPACE",
+        "value" : var.temporal_cluster_config.namespace
       },
       {
-        "name": "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_HOST",
-        "value": var.temporal_cluster_config.host
+        "name" : "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_HOST",
+        "value" : var.temporal_cluster_config.host
       },
       {
-        "name": "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_PORT",
-        "value": var.temporal_cluster_config.port
+        "name" : "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_PORT",
+        "value" : var.temporal_cluster_config.port
       },
       {
-        "name": "WORKFLOW_TEMPORAL_TLS_ENABLED",
-        "value": tostring(var.temporal_cluster_config.tls_enabled)
+        "name" : "WORKFLOW_TEMPORAL_TLS_ENABLED",
+        "value" : tostring(var.temporal_cluster_config.tls_enabled)
       }
     ]
   )
 
   temporal_mtls_config = (
-    var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null && var.temporal_cluster_config.tls_key != null ? 
-      [
-        {
-          "name": "WORKFLOW_TEMPORAL_TLS_CRT",
-          "value": var.temporal_cluster_config.tls_crt
-        },
-        {
-          "name": "WORKFLOW_TEMPORAL_TLS_KEY",
-          "value": var.temporal_cluster_config.tls_key
-        } 
-      ] : 
-      []
+    var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null && var.temporal_cluster_config.tls_key != null ?
+    [
+      {
+        "name" : "WORKFLOW_TEMPORAL_TLS_CRT",
+        "value" : var.temporal_cluster_config.tls_crt
+      },
+      {
+        "name" : "WORKFLOW_TEMPORAL_TLS_KEY",
+        "value" : var.temporal_cluster_config.tls_key
+      }
+    ] :
+    []
   )
 }
