@@ -2,22 +2,22 @@ module "temporal_aurora_rds" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "8.0.2"
 
-  name="${var.deployment_name}-temporal-rds-instance"
+  name              = "${var.deployment_name}-temporal-rds-instance"
   engine            = "aurora-postgresql"
   engine_mode       = "provisioned"
   engine_version    = "14.5"
   storage_encrypted = true
 
-  vpc_id               = var.vpc_id
+  vpc_id = var.vpc_id
 
   monitoring_interval = 60
 
   # Create DB Subnet group using var.subnet_ids
   create_db_subnet_group = true
-  subnets = var.subnet_ids
+  subnets                = var.subnet_ids
 
-  master_username = aws_secretsmanager_secret_version.temporal_aurora_username.secret_string
-  master_password = aws_secretsmanager_secret_version.temporal_aurora_password.secret_string
+  master_username             = aws_secretsmanager_secret_version.temporal_aurora_username.secret_string
+  master_password             = aws_secretsmanager_secret_version.temporal_aurora_password.secret_string
   manage_master_user_password = false
 
   apply_immediately   = true
@@ -38,10 +38,14 @@ module "temporal_aurora_rds" {
   instances = {
     one = {}
   }
+
+  kms_key_id              = var.kms_key_id
+  preferred_backup_window = var.backup_window
+  backup_retention_period = var.backup_retention_in_days
 }
 
-resource "aws_service_discovery_service" "temporal_frontend_service" { 
-  name  = "temporal"
+resource "aws_service_discovery_service" "temporal_frontend_service" {
+  name = "temporal"
 
   dns_config {
     namespace_id = var.private_dns_namespace_id
@@ -85,7 +89,7 @@ resource "aws_ecs_service" "retool_temporal" {
   dynamic "network_configuration" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
-    content {    
+    content {
       subnets = var.subnet_ids
       security_groups = [
         var.container_sg_id
@@ -99,13 +103,13 @@ resource "aws_ecs_task_definition" "retool_temporal" {
 
   for_each = var.temporal_services_config
 
-  family        = "${var.deployment_name}-${each.key}"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  family                   = "${var.deployment_name}-${each.key}"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? each.value["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? each.value["memory"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? each.value["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? each.value["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -145,9 +149,9 @@ resource "aws_ecs_task_definition" "retool_temporal" {
               "value" = each.key
             },
           ],
-          each.key != "frontend" ? [ {
-              "name": "PUBLIC_FRONTEND_ADDRESS",
-              "value": "${var.temporal_cluster_config.host}:${var.temporal_cluster_config.port}"
+          each.key != "frontend" ? [{
+            "name" : "PUBLIC_FRONTEND_ADDRESS",
+            "value" : "${var.temporal_cluster_config.host}:${var.temporal_cluster_config.port}"
             }
           ] : []
         )
