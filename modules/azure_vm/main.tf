@@ -145,7 +145,7 @@ resource "azurerm_subnet" "this" {
 }
 resource "azurerm_private_dns_zone" "this" {
   count               = var.external_psql ? 1 : 0
-  name                = "retool.postgres.database.azure.com"
+  name                = "retool-dbs.postgres.database.azure.com"
   resource_group_name = data.azurerm_resource_group.selected.name
 }
 
@@ -159,7 +159,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "this" {
 
 resource "azurerm_postgresql_flexible_server" "this" {
   count                  = var.external_psql ? 1 : 0
-  name                   = "retool-psqlflexibleserver"
+  name                   = var.psql_flex_name
   resource_group_name    = data.azurerm_resource_group.selected.name
   location               = data.azurerm_resource_group.selected.location
   version                = "12"

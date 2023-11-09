@@ -76,7 +76,7 @@ variable "security_rules" {
       destination_address_prefix = "*"
     }
   ]
-  description = "Ingress rules for EC2 security group"
+  description = "Ingress rules for network security group"
 }
 
 variable "instance_size" {
@@ -84,6 +84,13 @@ variable "instance_size" {
   description = "Retool instance size"
   default     = "Standard_D4_v4"
 }
+
+variable "psql_flex_name" {
+  type        = string
+  description = "Name for psql flex server"
+  default     = "retool"
+}
+
 
 variable "psql_password" {
   type        = string
