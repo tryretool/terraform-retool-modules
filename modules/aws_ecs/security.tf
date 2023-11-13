@@ -103,7 +103,7 @@ resource "aws_vpc_security_group_ingress_rule" "variable_rules" {
 resource "aws_vpc_security_group_ingress_rule" "containers_self_ingress" {
   security_group_id = aws_security_group.containers.id
 
-  description = "Allow self-ingress for inter-container communication"
+  description                  = "Allow self-ingress for inter-container communication"
   referenced_security_group_id = aws_security_group.containers.id
-  ip_protocol = -1
+  ip_protocol                  = -1
 }

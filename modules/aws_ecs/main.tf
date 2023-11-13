@@ -26,7 +26,7 @@ resource "aws_db_subnet_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier                    = "${var.deployment_name}-rds-instance"
+  identifier                   = "${var.deployment_name}-rds-instance"
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
   engine                       = "postgres"
@@ -39,9 +39,9 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids       = [aws_security_group.rds.id]
   db_subnet_group_name         = aws_db_subnet_group.this.id
   performance_insights_enabled = var.rds_performance_insights_enabled
-  
-  skip_final_snapshot          = true
-  apply_immediately           = true
+
+  skip_final_snapshot = true
+  apply_immediately   = true
 }
 
 resource "aws_ecs_service" "retool" {
@@ -68,6 +68,7 @@ resource "aws_ecs_service" "retool" {
 
   dynamic "network_configuration" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
+
 
     content {    
       subnets = var.private_subnet_ids
@@ -112,7 +113,7 @@ resource "aws_ecs_service" "workflows_backend" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_workflows_backend[0].arn
-  
+
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
     base              = 1
@@ -165,13 +166,13 @@ resource "aws_ecs_service" "workflows_worker" {
 }
 
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
-  family        = "retool-jobs-runner"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  family                   = "retool-jobs-runner"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -215,13 +216,13 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
   )
 }
 resource "aws_ecs_task_definition" "retool" {
-  family        = "retool"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  family                   = "retool"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -270,14 +271,14 @@ resource "aws_ecs_task_definition" "retool" {
 }
 
 resource "aws_ecs_task_definition" "retool_workflows_backend" {
-  count         = var.workflows_enabled ? 1 : 0
-  family        = "retool-workflows-backend"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
+  count                    = var.workflows_enabled ? 1 : 0
+  family                   = "retool-workflows-backend"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -325,14 +326,14 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   )
 }
 resource "aws_ecs_task_definition" "retool_workflows_worker" {
-  count         = var.workflows_enabled ? 1 : 0
-  family        = "retool-workflows-worker"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
+  count                    = var.workflows_enabled ? 1 : 0
+  family                   = "retool-workflows-worker"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -385,13 +386,13 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "retoolsvc" {
-  count         = var.workflows_enabled ? 1 : 0
+  count       = var.workflows_enabled ? 1 : 0
   name        = "retoolsvc"
   description = "Service Discovery namespace for Retool deployment"
   vpc         = var.vpc_id
 }
 
-resource "aws_service_discovery_service" "retool_workflow_backend_service" { 
+resource "aws_service_discovery_service" "retool_workflow_backend_service" {
   count = var.workflows_enabled ? 1 : 0
   name  = "workflow-backend"
 
@@ -412,9 +413,8 @@ resource "aws_service_discovery_service" "retool_workflow_backend_service" {
 }
 
 module "temporal" {
-  count = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
+  count  = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
   source = "./temporal"
-  
   deployment_name   = "${var.deployment_name}-temporal"
   vpc_id = var.vpc_id
   subnet_ids = var.private_subnet_ids
