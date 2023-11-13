@@ -79,7 +79,7 @@ resource "aws_autoscaling_group" "this" {
   max_size             = var.max_instance_count
   min_size             = var.min_instance_count
   desired_capacity     = var.min_instance_count
-  vpc_zone_identifier  = var.subnet_ids
+  vpc_zone_identifier  = var.private_subnet_ids
   launch_configuration = aws_launch_configuration.this[0].name
 
   default_cooldown          = 30
