@@ -33,7 +33,7 @@ resource "azurerm_public_ip" "this" {
   name                = "retool_public_ip"
   resource_group_name = data.azurerm_resource_group.selected.name
   location            = data.azurerm_resource_group.selected.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   lifecycle {
     create_before_destroy = true
   }
@@ -128,7 +128,7 @@ resource "azurerm_virtual_machine_extension" "this" {
 
 resource "azurerm_subnet" "this" {
   count                = var.external_psql ? 1 : 0
-  name                 = "psql-flexible-sn"
+  name                 = "psql-flex-subnet"
   resource_group_name  = data.azurerm_resource_group.selected.name
   virtual_network_name = data.azurerm_virtual_network.selected.name
   address_prefixes     = var.psql_subnet_cidr
