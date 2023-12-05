@@ -135,6 +135,12 @@ variable "rds_performance_insights_retention_period" {
   description = "The time in days to retain Performance Insights for RDS. Defaults to 14."
 }
 
+variable "rds_ca_cert_identifier" {
+  type        = string
+  default     = "rds-ca-rsa2048-g1"
+  description = "The identifier of the CA certificate for the DB instance"
+}
+
 variable "use_exising_temporal_cluster" {
   type        = bool
   default     = false
