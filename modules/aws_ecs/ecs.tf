@@ -23,7 +23,7 @@ resource "aws_ecs_cluster_capacity_providers" "this" {
 # Required setup for EC2 instances (if not using Fargate)
 data "aws_ami" "this" {
   most_recent = true # get the latest version
-  name_regex = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
+  name_regex  = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
 
   filter {
     name = "virtualization-type"
@@ -67,7 +67,7 @@ resource "aws_launch_configuration" "this" {
 
   # Allow the EC2 instances to access AWS resources on your behalf, using this instance profile and the permissions defined there
   iam_instance_profile = aws_iam_instance_profile.ec2[0].arn
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -79,7 +79,7 @@ resource "aws_autoscaling_group" "this" {
   max_size             = var.max_instance_count
   min_size             = var.min_instance_count
   desired_capacity     = var.min_instance_count
-  vpc_zone_identifier  = var.subnet_ids
+  vpc_zone_identifier  = var.private_subnet_ids
   launch_configuration = aws_launch_configuration.this[0].name
 
   default_cooldown          = 30
