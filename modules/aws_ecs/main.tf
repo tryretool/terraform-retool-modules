@@ -27,7 +27,7 @@ resource "aws_db_instance" "this" {
   instance_class               = var.rds_instance_class
   ca_cert_identifier           = var.rds_ca_cert_identifier
   engine                       = "postgres"
-  engine_version               = "13.7"
+  engine_version               = "14.8"
   db_name                      = "hammerhead_production"
   username                     = aws_secretsmanager_secret_version.rds_username.secret_string
   password                     = aws_secretsmanager_secret_version.rds_password.secret_string
