@@ -90,7 +90,6 @@ To make this Retool installation externally available and generate an SSL cert:
     ingressClassName: nginx
     labels: {}
     annotations: {}
-        kubernetes.io/ingress.class: nginx
         kubernetes.io/tls-acme: "true"
         certmanager.io/cluster-issuer: letsencrypt-prod
     hosts:
