@@ -1,9 +1,3 @@
-variable "commandtoexecute" {
-  type        = string
-  description = "Commands to run at vm startup"
-  default     = ""
-}
-
 variable "security_rules" {
   type = list(
     object({
