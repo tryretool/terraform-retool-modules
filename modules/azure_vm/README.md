@@ -128,3 +128,55 @@ For example, to create a Retool instance accessible from anywhere, you can use t
   ]
 ```
 
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 3.74 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 3.74 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [azurerm_linux_virtual_machine.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_network_interface.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
+| [azurerm_network_interface_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_security_group_association) | resource |
+| [azurerm_network_security_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_rule.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
+| [azurerm_public_ip.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
+| [azurerm_virtual_machine_extension.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_resource_group.selected](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) | data source |
+| [azurerm_subnet.selected](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/subnet) | data source |
+| [azurerm_virtual_network.selected](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_network) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_commandtoexecute"></a> [commandtoexecute](#input\_commandtoexecute) | Commands to run at vm startup | `string` | `""` | no |
+| <a name="input_instance_size"></a> [instance\_size](#input\_instance\_size) | Retool instance size | `string` | `"Standard_D4_v4"` | no |
+| <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name) | Existing resource group to create resources in | `string` | n/a | yes |
+| <a name="input_security_rules"></a> [security\_rules](#input\_security\_rules) | Ingress rules for EC2 security group | <pre>list(<br>    object({<br>      name                       = string<br>      priority                   = number<br>      direction                  = string<br>      access                     = string<br>      protocol                   = string<br>      source_port_range          = string<br>      destination_port_range     = string<br>      source_address_prefix      = string<br>      destination_address_prefix = string<br>    })<br>  )</pre> | <pre>[<br>  {<br>    "access": "Allow",<br>    "destination_address_prefix": "*",<br>    "destination_port_range": "80",<br>    "direction": "Inbound",<br>    "name": "GlobalHTTP",<br>    "priority": 300,<br>    "protocol": "Tcp",<br>    "source_address_prefix": "*",<br>    "source_port_range": "*"<br>  },<br>  {<br>    "access": "Allow",<br>    "destination_address_prefix": "*",<br>    "destination_port_range": "443",<br>    "direction": "Inbound",<br>    "name": "GlobalHTTPS",<br>    "priority": 310,<br>    "protocol": "Tcp",<br>    "source_address_prefix": "*",<br>    "source_port_range": "*"<br>  },<br>  {<br>    "access": "Allow",<br>    "destination_address_prefix": "*",<br>    "destination_port_range": "22",<br>    "direction": "Inbound",<br>    "name": "SSH",<br>    "priority": 320,<br>    "protocol": "Tcp",<br>    "source_address_prefix": "*",<br>    "source_port_range": "*"<br>  },<br>  {<br>    "access": "Allow",<br>    "destination_address_prefix": "*",<br>    "destination_port_range": "3000",<br>    "direction": "Inbound",<br>    "name": "ApplicationPort",<br>    "priority": 330,<br>    "protocol": "Tcp",<br>    "source_address_prefix": "*",<br>    "source_port_range": "*"<br>  }<br>]</pre> | no |
+| <a name="input_ssh_key_path"></a> [ssh\_key\_path](#input\_ssh\_key\_path) | Path to SSH key for connection to VM | `string` | `"~/.ssh/id_rsa.pub"` | no |
+| <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | Existing subnet to create resources in | `string` | n/a | yes |
+| <a name="input_version_number"></a> [version\_number](#input\_version\_number) | Retool version | `string` | n/a | yes |
+| <a name="input_virtual_network_name"></a> [virtual\_network\_name](#input\_virtual\_network\_name) | Existing vnet to create resources in | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_vm_public_ip"></a> [vm\_public\_ip](#output\_vm\_public\_ip) | Public IP of VM Instance |
+<!-- END_TF_DOCS -->
