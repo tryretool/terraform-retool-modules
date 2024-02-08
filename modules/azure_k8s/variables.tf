@@ -1,13 +1,13 @@
 variable "default_node_count" {
-  type = string
+  type        = string
   description = "Instance count for default node pool"
-  default = "1"
+  default     = "1"
 }
 
 variable "default_node_size" {
-  type = string
+  type        = string
   description = "Instance size for default node pool"
-  default = "Standard_D2_v4"
+  default     = "Standard_D2_v4"
 }
 
 variable "db_instance_size" {
@@ -17,15 +17,15 @@ variable "db_instance_size" {
 }
 
 variable "k8s_dns_service_ip" {
-  type = string
+  type        = string
   description = "IP for kube-dns within service range"
-  default = "10.1.1.1"
+  default     = "10.1.1.1"
 }
 
 variable "k8s_max_node_count" {
-  type = number
+  type        = number
   description = "Max number of nodes that can be autoscaled to"
-  default = 3
+  default     = 3
 }
 
 variable "k8s_node_size" {
@@ -35,9 +35,9 @@ variable "k8s_node_size" {
 }
 
 variable "k8s_service_cidr" {
-    type = string
-    description = "CIDR block for k8s service"
-    default = "10.1.0.0/16"
+  type        = string
+  description = "CIDR block for k8s service"
+  default     = "10.1.0.0/16"
 }
 
 variable "k8s_version" {
@@ -46,10 +46,16 @@ variable "k8s_version" {
   default     = "1.26.6"
 }
 
+variable "local_temporal" {
+  type        = bool
+  description = "Boolean to provision local temporal psql server"
+  default     = false
+}
+
 variable "psql_db_name" {
-  type = string
+  type        = string
   description = "Name for retool postgres database"
-  default = "retool"
+  default     = "retool"
 }
 
 variable "psql_subnet_cidr" {
@@ -81,9 +87,9 @@ variable "subnet_name" {
 }
 
 variable "temporal_db_name" {
-  type = string
+  type        = string
   description = "Database name for temporal db"
-  default = "retool-temporal"
+  default     = "retool-temporal"
 }
 
 variable "temporal_user" {

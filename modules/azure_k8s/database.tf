@@ -1,10 +1,10 @@
 resource "random_password" "psql_password" {
-  length           = 16
-  special          = true
+  length  = 16
+  special = true
 }
 resource "random_password" "temporal_password" {
-  length           = 16
-  special          = true
+  length  = 16
+  special = true
 }
 
 
@@ -52,6 +52,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "this" {
 }
 
 resource "azurerm_postgresql_flexible_server" "temporal" {
+  count                  = var.local_temporal ? 1 : 0
   name                   = var.temporal_db_name
   resource_group_name    = data.azurerm_resource_group.selected.name
   location               = data.azurerm_resource_group.selected.location
@@ -84,7 +85,8 @@ resource "azurerm_postgresql_flexible_server" "temporal" {
 # }
 
 resource "azurerm_postgresql_flexible_server_configuration" "temporal" {
+  count     = var.local_temporal ? 1 : 0
   name      = "azure.extensions"
-  server_id = azurerm_postgresql_flexible_server.temporal.id
+  server_id = azurerm_postgresql_flexible_server.temporal[0].id
   value     = "UUID-OSSP"
 }
