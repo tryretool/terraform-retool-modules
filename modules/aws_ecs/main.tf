@@ -419,7 +419,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
       {
         name      = "retool-code-executor"
         essential = true
-        image     = var.ecs_code_executor_image
+        image     = local.ecs_code_executor_image
         cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
         command = [

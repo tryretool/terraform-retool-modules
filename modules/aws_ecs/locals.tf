@@ -10,6 +10,9 @@ locals {
     },
   ]
 
+  // Use var.ecs_code_executor_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
+  ecs_code_executor_image = var.ecs_code_executor_image != "" ? var.ecs_code_executor_image : format("%s:%s", "tryretool/code-executor-service", split(":", var.ecs_retool_image)[1])
+
   environment_variables = concat(
     var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
