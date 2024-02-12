@@ -67,6 +67,7 @@ resource "aws_ecs_service" "retool_temporal" {
   cluster         = var.aws_ecs_cluster_id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_temporal[each.key].arn
+  propagate_tags		     = var.task_propagate_tags
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
