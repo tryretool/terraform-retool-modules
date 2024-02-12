@@ -50,5 +50,10 @@ output "target_group_arn" {
 
 output "iam_task_role_arn" {
   value       = aws_iam_role.task_role.arn
-  description = "IAM role for all ECS tasks"
+  description = "IAM role ARN for all ECS tasks"
+}
+
+output "iam_task_role_name" {
+  value       = aws_iam_role.task_role.name
+  description = "IAM role name for all ECS tasks"
 }
