@@ -49,6 +49,9 @@ resource "azurerm_kubernetes_cluster" "this" {
   oms_agent {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   }
+  lifecycle {
+    ignore_changes = [ ingress_application_gateway ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "this" {

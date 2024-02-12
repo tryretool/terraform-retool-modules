@@ -1,3 +1,13 @@
+output "application_gateway" {
+  value = one(azurerm_application_gateway.this[*].name)
+  description = "Application gateway name"
+}
+
+output "ag_subnet_name" {
+  value = one(azurerm_subnet.app_gw[*].id)
+  description = "Application gateway subnet name"
+}
+
 output "cluster_name" {
   value       = azurerm_kubernetes_cluster.this.name
   description = "Retool k8s cluster name"

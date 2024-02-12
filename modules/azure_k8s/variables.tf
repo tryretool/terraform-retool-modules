@@ -1,3 +1,9 @@
+variable "app_gw_subnet_cidr" {
+  type        = list(string)
+  description = "CIDR block for database subnet"
+  default     = ["10.0.3.0/24"]
+}
+
 variable "default_node_count" {
   type        = string
   description = "Instance count for default node pool"
@@ -98,6 +104,11 @@ variable "temporal_user" {
   default     = "retool"
 }
 
+variable "use_app_gateway" {
+  type = bool
+  description = "Boolean to provision application gateway"
+  default = false
+}
 variable "virtual_network_name" {
   type        = string
   description = "Existing vnet to create resources in"
