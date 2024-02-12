@@ -427,4 +427,5 @@ module "temporal" {
   launch_type = var.launch_type
   container_sg_id = aws_security_group.containers.id
   aws_ecs_capacity_provider_name = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
+  task_propagate_tags = var.task_propagate_tags
 }
