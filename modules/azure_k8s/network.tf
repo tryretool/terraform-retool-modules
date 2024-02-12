@@ -27,10 +27,10 @@ resource "azurerm_subnet" "this" {
 }
 
 resource "azurerm_subnet" "app_gw" {
-  count               = var.use_app_gateway ? 1 : 0
-  name = "app-gw-sn"
+  count                = var.use_app_gateway ? 1 : 0
+  name                 = "app-gw-sn"
   resource_group_name  = data.azurerm_resource_group.selected.name
   virtual_network_name = data.azurerm_virtual_network.selected.name
-  address_prefixes = var.app_gw_subnet_cidr
+  address_prefixes     = var.app_gw_subnet_cidr
 }
 

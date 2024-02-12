@@ -134,6 +134,7 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [azurerm_application_gateway.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway) | resource |
 | [azurerm_kubernetes_cluster.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster) | resource |
 | [azurerm_kubernetes_cluster_node_pool.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster_node_pool) | resource |
 | [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
@@ -144,7 +145,9 @@ No modules.
 | [azurerm_postgresql_flexible_server_database.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/postgresql_flexible_server_database) | resource |
 | [azurerm_private_dns_zone.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone_virtual_network_link.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
+| [azurerm_public_ip.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_role_assignment.k8s_nc_to_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_subnet.app_gw](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
 | [azurerm_subnet.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) | resource |
 | [random_password.psql_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.temporal_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
@@ -156,6 +159,9 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_app_gw_sku_name"></a> [app\_gw\_sku\_name](#input\_app\_gw\_sku\_name) | Application gateway sku name | `string` | `"Standard_v2"` | no |
+| <a name="input_app_gw_sku_tier"></a> [app\_gw\_sku\_tier](#input\_app\_gw\_sku\_tier) | Application gateway sku tier | `string` | `"Standard_v2"` | no |
+| <a name="input_app_gw_subnet_cidr"></a> [app\_gw\_subnet\_cidr](#input\_app\_gw\_subnet\_cidr) | CIDR block for database subnet | `list(string)` | <pre>[<br>  "10.0.3.0/24"<br>]</pre> | no |
 | <a name="input_db_instance_size"></a> [db\_instance\_size](#input\_db\_instance\_size) | Instance size for external Azure Postgres server | `string` | `"GP_Standard_D4s_v3"` | no |
 | <a name="input_default_node_count"></a> [default\_node\_count](#input\_default\_node\_count) | Instance count for default node pool | `string` | `"1"` | no |
 | <a name="input_default_node_size"></a> [default\_node\_size](#input\_default\_node\_size) | Instance size for default node pool | `string` | `"Standard_D2_v4"` | no |
@@ -164,6 +170,7 @@ No modules.
 | <a name="input_k8s_node_size"></a> [k8s\_node\_size](#input\_k8s\_node\_size) | VM size for retool node pool | `string` | `"Standard_D8_v4"` | no |
 | <a name="input_k8s_service_cidr"></a> [k8s\_service\_cidr](#input\_k8s\_service\_cidr) | CIDR block for k8s service | `string` | `"10.1.0.0/16"` | no |
 | <a name="input_k8s_version"></a> [k8s\_version](#input\_k8s\_version) | Kubernetes version to launch | `string` | `"1.26.6"` | no |
+| <a name="input_local_temporal"></a> [local\_temporal](#input\_local\_temporal) | Boolean to provision local temporal psql server | `bool` | `false` | no |
 | <a name="input_psql_db_name"></a> [psql\_db\_name](#input\_psql\_db\_name) | Name for retool postgres database | `string` | `"retool"` | no |
 | <a name="input_psql_subnet_cidr"></a> [psql\_subnet\_cidr](#input\_psql\_subnet\_cidr) | CIDR block for database subnet | `list(string)` | <pre>[<br>  "10.0.2.0/24"<br>]</pre> | no |
 | <a name="input_psql_user"></a> [psql\_user](#input\_psql\_user) | Admin username for postgres database | `string` | `"retool"` | no |
@@ -172,12 +179,15 @@ No modules.
 | <a name="input_subnet_name"></a> [subnet\_name](#input\_subnet\_name) | Existing subnet to create k8s node pool in | `string` | n/a | yes |
 | <a name="input_temporal_db_name"></a> [temporal\_db\_name](#input\_temporal\_db\_name) | Database name for temporal db | `string` | `"retool-temporal"` | no |
 | <a name="input_temporal_user"></a> [temporal\_user](#input\_temporal\_user) | Admin username for temporal postgres database | `string` | `"retool"` | no |
+| <a name="input_use_app_gateway"></a> [use\_app\_gateway](#input\_use\_app\_gateway) | Boolean to provision application gateway | `bool` | `false` | no |
 | <a name="input_virtual_network_name"></a> [virtual\_network\_name](#input\_virtual\_network\_name) | Existing vnet to create resources in | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
+| <a name="output_ag_subnet_name"></a> [ag\_subnet\_name](#output\_ag\_subnet\_name) | Application gateway subnet name |
+| <a name="output_application_gateway"></a> [application\_gateway](#output\_application\_gateway) | Application gateway name |
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Retool k8s cluster name |
 | <a name="output_psql_fqdn"></a> [psql\_fqdn](#output\_psql\_fqdn) | Retool psql flex server fqdn |
 | <a name="output_psql_password"></a> [psql\_password](#output\_psql\_password) | Retool psql password |

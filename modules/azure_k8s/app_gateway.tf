@@ -3,12 +3,12 @@ resource "azurerm_public_ip" "this" {
   name                = "retool-pip"
   resource_group_name = data.azurerm_resource_group.selected.name
   location            = data.azurerm_resource_group.selected.location
-  sku = "Standard"
+  sku                 = "Standard"
   allocation_method   = "Static"
 }
 
 locals {
-  base_name = "retool"
+  base_name                      = "retool"
   backend_address_pool_name      = "${local.base_name}-beap"
   frontend_port_name             = "${local.base_name}-feport"
   frontend_ip_configuration_name = "${local.base_name}-feip"
@@ -25,8 +25,8 @@ resource "azurerm_application_gateway" "this" {
   location            = data.azurerm_resource_group.selected.location
 
   sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
+    name     = var.app_gw_sku_name
+    tier     = var.app_gw_sku_tier
     capacity = 2
   }
 
@@ -74,7 +74,7 @@ resource "azurerm_application_gateway" "this" {
     backend_http_settings_name = local.http_setting_name
   }
   lifecycle {
-    ignore_changes =  all 
+    ignore_changes = all
   }
 }
 

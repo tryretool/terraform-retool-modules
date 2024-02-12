@@ -50,7 +50,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
   }
   lifecycle {
-    ignore_changes = [ ingress_application_gateway ]
+    ignore_changes = [ingress_application_gateway]
   }
 }
 

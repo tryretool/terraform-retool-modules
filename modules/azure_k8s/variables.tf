@@ -4,6 +4,17 @@ variable "app_gw_subnet_cidr" {
   default     = ["10.0.3.0/24"]
 }
 
+variable "app_gw_sku_name" {
+  type        = string
+  description = "Application gateway sku name"
+  default     = "Standard_v2"
+}
+
+variable "app_gw_sku_tier" {
+  type        = string
+  description = "Application gateway sku tier"
+  default     = "Standard_v2"
+}
 variable "default_node_count" {
   type        = string
   description = "Instance count for default node pool"
@@ -105,9 +116,9 @@ variable "temporal_user" {
 }
 
 variable "use_app_gateway" {
-  type = bool
+  type        = bool
   description = "Boolean to provision application gateway"
-  default = false
+  default     = false
 }
 variable "virtual_network_name" {
   type        = string
