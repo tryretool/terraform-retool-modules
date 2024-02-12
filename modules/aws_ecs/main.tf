@@ -50,6 +50,7 @@ resource "aws_ecs_service" "retool" {
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
   iam_role                           = var.launch_type == "EC2" ? aws_iam_role.service_role.arn : null
+  propagate_tags		     = var.task_propagate_tags
 
   load_balancer {
     target_group_arn = aws_lb_target_group.this.arn
