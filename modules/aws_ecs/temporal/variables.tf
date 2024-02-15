@@ -163,4 +163,9 @@ variable "aws_region" {
   description = "AWS region. Defaults to `us-east-1`"
 }
 
+variable "task_propagate_tags" {
+  type        = string
+  description = "Which resource to propagate tags from for ECS service tasks. Defaults to `TASK_DEFINITION`"
+  default     = "TASK_DEFINITION"
+}
 

@@ -55,6 +55,12 @@ variable "deployment_name" {
   default     = "retool"
 }
 
+variable "task_propagate_tags" {
+  type        = string
+  description = "Which resource to propagate tags from for ECS service tasks. Defaults to `TASK_DEFINITION`"
+  default     = "TASK_DEFINITION"
+}
+
 variable "retool_license_key" {
   type        = string
   description = "Retool license key"

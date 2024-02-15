@@ -50,6 +50,7 @@ resource "aws_ecs_service" "retool" {
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
   iam_role                           = var.launch_type == "EC2" ? aws_iam_role.service_role.arn : null
+  propagate_tags                     = var.task_propagate_tags
 
   load_balancer {
     target_group_arn = aws_lb_target_group.this.arn
@@ -83,6 +84,7 @@ resource "aws_ecs_service" "jobs_runner" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_jobs_runner.arn
+  propagate_tags  = var.task_propagate_tags
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -111,6 +113,7 @@ resource "aws_ecs_service" "workflows_backend" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_workflows_backend[0].arn
+  propagate_tags  = var.task_propagate_tags
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -142,6 +145,7 @@ resource "aws_ecs_service" "workflows_worker" {
   cluster         = aws_ecs_cluster.this.id
   desired_count   = 1
   task_definition = aws_ecs_task_definition.retool_workflows_worker[0].arn
+  propagate_tags  = var.task_propagate_tags
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -423,4 +427,5 @@ module "temporal" {
   launch_type = var.launch_type
   container_sg_id = aws_security_group.containers.id
   aws_ecs_capacity_provider_name = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
+  task_propagate_tags = var.task_propagate_tags
 }

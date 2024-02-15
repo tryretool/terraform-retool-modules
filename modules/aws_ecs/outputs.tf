@@ -47,3 +47,13 @@ output "target_group_arn" {
   value       = aws_lb_target_group.this.arn
   description = "ARN for alb target group"
 }
+
+output "iam_task_role_arn" {
+  value       = aws_iam_role.task_role.arn
+  description = "IAM role ARN for all ECS tasks"
+}
+
+output "iam_task_role_name" {
+  value       = aws_iam_role.task_role.name
+  description = "IAM role name for all ECS tasks"
+}
