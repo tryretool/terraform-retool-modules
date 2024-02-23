@@ -57,14 +57,14 @@ variable "retool_license_key" {
 
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `2.116.3`"
-  default     = "tryretool/backend:2.116.3"
+  description = "Container image for desired Retool version. Defaults to `3.28.7`"
+  default     = "tryretool/backend:3.28.7"
 }
 
 variable "ecs_code_executor_image" {
   type        = string
-  description = "Container image for desired code_executor version."
-  default     = "tryretool/code-executor-one-offs:3.13.0-c703e0a"
+  description = "Container image for desired code_executor version. Defaults to `3.28.7`"
+  default     = "tryretool/code-executor-service:3.28.7"
 }
 
 variable "ecs_task_resource_map" {
