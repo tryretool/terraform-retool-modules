@@ -167,6 +167,37 @@ resource "aws_ecs_service" "workflows_worker" {
   }
 }
 
+resource "aws_ecs_service" "code_executor" {
+  count           = var.code_executor_enabled ? 1 : 0
+  name            = "${var.deployment_name}-code-executor-service"
+  cluster         = aws_ecs_cluster.this.id
+  desired_count   = 1
+  task_definition = aws_ecs_task_definition.retool_code_executor[0].arn
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.retool_code_executor_service[0].arn
+  }
+  dynamic "network_configuration" {
+
+    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
+
+    content {
+      subnets = var.subnet_ids
+      security_groups = [
+        aws_security_group.containers.id
+      ]
+      assign_public_ip = true
+    }
+  }
+}
+
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family                   = "retool-jobs-runner"
   task_role_arn            = aws_iam_role.task_role.arn
@@ -387,6 +418,56 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   )
 }
 
+resource "aws_ecs_task_definition" "retool_code_executor" {
+  count         = var.code_executor_enabled ? 1 : 0
+  family        = "retool-code-executor"
+  task_role_arn = aws_iam_role.task_role.arn
+  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
+  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+  container_definitions = jsonencode(
+    [
+      {
+        name      = "retool-code-executor"
+        essential = true
+        image     = local.ecs_code_executor_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        command = [
+          "./start.sh"
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.this.id
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "SERVICE_RETOOL"
+          }
+        }
+
+        health_check = {
+          command = ["CMD-SHELL", "curl http://localhost/api/checkHealth:3004 || exit 1"]
+        }
+
+        portMappings = [
+          {
+            containerPort = 3004
+            hostPort      = 3004
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = concat(
+          local.base_environment_variables,
+        )
+      }
+    ]
+  )
+}
+
 resource "aws_service_discovery_private_dns_namespace" "retoolsvc" {
   count       = var.workflows_enabled ? 1 : 0
   name        = "retoolsvc"
@@ -397,6 +478,26 @@ resource "aws_service_discovery_private_dns_namespace" "retoolsvc" {
 resource "aws_service_discovery_service" "retool_workflow_backend_service" {
   count = var.workflows_enabled ? 1 : 0
   name  = "workflow-backend"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+
+    dns_records {
+      ttl  = 60
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+resource "aws_service_discovery_service" "retool_code_executor_service" {
+  count = var.code_executor_enabled ? 1 : 0
+  name  = "code-executor"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id

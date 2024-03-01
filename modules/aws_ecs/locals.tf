@@ -1,12 +1,29 @@
 locals {
+  base_environment_variables = [
+    {
+      name  = "NODE_ENV"
+      value = var.node_env
+    },
+    {
+      name  = "IS_ONPREM",
+      value = "true"
+    },
+  ]
+
+  // Use var.ecs_code_executor_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
+  ecs_code_executor_image = var.ecs_code_executor_image != "" ? var.ecs_code_executor_image : format("%s:%s", "tryretool/code-executor-service", split(":", var.ecs_retool_image)[1])
+
   environment_variables = concat(
     var.additional_env_vars, # add additional environment variables
+    local.base_environment_variables,
     local.temporal_mtls_config,
-    [
+    var.code_executor_enabled ? [
       {
-        name  = "NODE_ENV"
-        value = var.node_env
-      },
+        name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
+        value = "http://code-executor.retoolsvc:3004"
+      }
+    ] : [],
+    [
       {
         name  = "FORCE_DEPLOYMENT"
         value = tostring(var.force_deployment)
