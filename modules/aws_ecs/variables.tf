@@ -170,7 +170,7 @@ variable "rds_ca_cert_identifier" {
   description = "The identifier of the CA certificate for the DB instance"
 }
 
-variable "use_exising_temporal_cluster" {
+variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false
   description = "Whether to use an already existing Temporal Cluster. Defaults to false. Set to true and set temporal_cluster_config if you already have a Temporal cluster you want to use with Retool."
