@@ -523,6 +523,7 @@ module "temporal" {
   subnet_ids = var.private_subnet_ids
   private_dns_namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
   aws_cloudwatch_log_group_id = aws_cloudwatch_log_group.this.id
+  temporal_aurora_performance_insights_enabled = var.temporal_aurora_performance_insights_enabled
   aws_region = var.aws_region
   aws_ecs_cluster_id = aws_ecs_cluster.this.id
   launch_type = var.launch_type
