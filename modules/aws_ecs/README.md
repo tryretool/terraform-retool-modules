@@ -8,7 +8,7 @@ This module deploys an ECS cluster with autoscaling group of EC2 instances.
 
 ```
 module "retool" {
-    source = "git@github.com:tryretool/retool-terraform.git//modules/aws_ecs"
+    source = "git@github.com:tryretool/terraform-retool-modules.git//modules/aws_ecs"
 
     aws_region = "<your-aws-region>"
     vpc_id = "<your-vpc-id>"
