@@ -10,7 +10,8 @@ module "temporal_aurora_rds" {
 
   vpc_id               = var.vpc_id
 
-  monitoring_interval = 60
+  performance_insights_enabled = var.temporal_aurora_performance_insights_enabled
+  monitoring_interval          = 60
 
   # Create DB Subnet group using var.subnet_ids
   create_db_subnet_group = true
