@@ -11,7 +11,7 @@
 
 ```
 module "retool" {
-    source = "git@github.com:tryretool/retool-terraform.git//modules/aws_ec2_standalone"
+    source = "git@github.com:tryretool/terraform-retool-modules.git//modules/aws_ec2_standalone"
 
     aws_region = "<your-aws-region>"
     vpc_id = "<your-vpc-id>"
