@@ -1,8 +1,13 @@
-# AWS ECS + EC2 Module
+# ⚠️ DEPRECATION NOTICE ⚠️
+
+This module is no longer maintained, use aws_ecs modules instead with `launch_type` set to `EC2`.
+
+
+## AWS ECS + EC2 Module
 
 This module deploys an ECS cluster with autoscaling group of EC2 instances.
 
-# Usage
+## Usage
 
 1. Directly use our module in your existing Terraform configuration and provide the required variables
 
@@ -38,9 +43,9 @@ module "retool" {
 
 8. You should now find a Load Balancer in your AWS EC2 Console associated with the deployment. The instance address should now be running Retool.
 
-## Common Configuration
+### Common Configuration
 
-### Instances
+#### Instances
 
 **EC2 Instance Size**
 To configure the EC instance size, set the `instance_type` input variable (e.g. `t2.large`).
@@ -48,9 +53,9 @@ To configure the EC instance size, set the `instance_type` input variable (e.g. 
 **RDS Instance Class**
 To configure the RDS instance class, set the `instance_class` input variable (e.g. `db.m6g.large`).
 
-## Advanced Configuration
+### Advanced Configuration
 
-### Security Groups
+#### Security Groups
 
 To customize the ingress and egress rules on the security groups, you can override specific input variable defaults.
 
@@ -99,7 +104,7 @@ ec2_egress_rules = [
 ]
 ```
 
-### Environment Variables
+#### Environment Variables
 
 To add additional [Retool environment variables](https://docs.retool.com/docs/environment-variables) to your deployment, populate the `additional_env_vars` input variable into the module.
 
