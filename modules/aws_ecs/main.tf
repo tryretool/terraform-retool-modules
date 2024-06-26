@@ -464,10 +464,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
         environment = compact(concat(
           local.base_environment_variables,
           # https://docs.retool.com/reference/environment-variables/code-executor#container_unprivileged_mode
-          var.launch_type == "FARGATE" ? {
-            name  = "CONTAINER_UNPRIVILEGED_MODE"
-            value = "true"
-          } : null,
+          var.launch_type == "FARGATE" ? [
+            {
+              name  = "CONTAINER_UNPRIVILEGED_MODE"
+              value = "true"
+            }
+          ] : []
         ))
       }
     ]
