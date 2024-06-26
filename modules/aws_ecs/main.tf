@@ -435,7 +435,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
         image     = local.ecs_code_executor_image
         cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user      = "1001:1001"
+        user      = var.launch_type == "FARGATE" ? "1001:1001" : null
         command = [
           "./start.sh"
         ]
@@ -461,14 +461,14 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           }
         ]
 
-        environment = concat(
+        environment = compact(concat(
           local.base_environment_variables,
           # https://docs.retool.com/reference/environment-variables/code-executor#container_unprivileged_mode
-          {
+          var.launch_type == "FARGATE" ? {
             name  = "CONTAINER_UNPRIVILEGED_MODE"
             value = "true"
-          },
-        )
+          } : null,
+        ))
       }
     ]
   )
