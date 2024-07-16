@@ -5,7 +5,7 @@ module "temporal_aurora_rds" {
   name="${var.deployment_name}-temporal-rds-instance"
   engine            = "aurora-postgresql"
   engine_mode       = "provisioned"
-  engine_version    = "14.5"
+  engine_version    = var.temporal_aurora_engine_version
   storage_encrypted = true
 
   vpc_id               = var.vpc_id
@@ -25,8 +25,8 @@ module "temporal_aurora_rds" {
   skip_final_snapshot = true
 
   serverlessv2_scaling_configuration = {
-    min_capacity = 0.5
-    max_capacity = 10
+    min_capacity = var.temporal_aurora_serverless_min_capacity
+    max_capacity = var.temporal_aurora_serverless_max_capacity
   }
 
   security_group_rules = {
@@ -36,9 +36,7 @@ module "temporal_aurora_rds" {
   }
 
   instance_class = "db.serverless"
-  instances = {
-    one = {}
-  }
+  instances      = var.temporal_aurora_instances
 }
 
 resource "aws_service_discovery_service" "temporal_frontend_service" { 

@@ -170,6 +170,12 @@ variable "rds_ca_cert_identifier" {
   description = "The identifier of the CA certificate for the DB instance"
 }
 
+variable "rds_instance_storage_encrypted" {
+  type        = bool
+  default     = false
+  description = "Whether the RDS instance should have storage encrypted. Defaults to false."
+}
+
 variable "use_exising_temporal_cluster" {
   type        = bool
   default     = false
@@ -234,6 +240,31 @@ variable "temporal_aurora_performance_insights_retention_period" {
   type        = number
   default     = 14
   description = "The time in days to retain Performance Insights for Temporal Aurora. Defaults to 14."
+}
+
+variable "temporal_aurora_engine_version" {
+  type        = string
+  default     = "14.5"
+  description = "Engine version for Temporal Aurora. Defaults to 14.5."
+}
+
+variable "temporal_aurora_serverless_min_capacity" {
+  type        = number
+  default     = 0.5
+  description = "Minimum capacity for Temporal Aurora Serverless. Defaults to 0.5."
+}
+
+variable "temporal_aurora_serverless_max_capacity" {
+  type        = number
+  default     = 10
+  description = "Maximum capacity for Temporal Aurora Serverless. Defaults to 10."
+}
+
+variable "temporal_aurora_instances" {
+  type = any
+  default = {
+    one = {}
+  }
 }
 
 variable "workflows_enabled" {

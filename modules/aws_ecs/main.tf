@@ -37,6 +37,7 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids       = [aws_security_group.rds.id]
   db_subnet_group_name         = aws_db_subnet_group.this.id
   performance_insights_enabled = var.rds_performance_insights_enabled
+  storage_encrypted            = var.rds_instance_storage_encrypted
 
   skip_final_snapshot = true
   apply_immediately   = true
@@ -532,6 +533,10 @@ module "temporal" {
   private_dns_namespace_id                     = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
   aws_cloudwatch_log_group_id                  = aws_cloudwatch_log_group.this.id
   temporal_aurora_performance_insights_enabled = var.temporal_aurora_performance_insights_enabled
+  temporal_aurora_engine_version               = var.temporal_aurora_engine_version
+  temporal_aurora_serverless_min_capacity      = var.temporal_aurora_serverless_min_capacity
+  temporal_aurora_serverless_max_capacity      = var.temporal_aurora_serverless_max_capacity
+  temporal_aurora_instances                    = var.temporal_aurora_instances
   aws_region                                   = var.aws_region
   aws_ecs_cluster_id                           = aws_ecs_cluster.this.id
   launch_type                                  = var.launch_type
