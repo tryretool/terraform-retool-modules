@@ -110,6 +110,32 @@ variable "ecs_task_resource_map" {
   description = "Amount of CPU and Memory provisioned for each task."
 }
 
+variable "temporal_ecs_task_resource_map" {
+  type = map(object({
+      cpu    = number
+      memory = number
+  }))
+  default = {
+    frontend = {
+      cpu    = 512
+      memory = 1024
+    },
+    history = {
+      cpu    = 512
+      memory = 2048
+    },
+    matching = {
+      cpu    = 512
+      memory = 1024
+    },
+    worker = {
+      cpu    = 512
+      memory = 1024
+    }
+  }
+  description = "Amount of CPU and Memory provisioned for each Temporal task."
+}
+
 variable "force_deployment" {
   type        = string
   default     = false

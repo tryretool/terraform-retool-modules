@@ -532,6 +532,32 @@ module "temporal" {
   subnet_ids                                   = var.private_subnet_ids
   private_dns_namespace_id                     = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
   aws_cloudwatch_log_group_id                  = aws_cloudwatch_log_group.this.id
+  temporal_services_config = {
+    frontend = {
+      request_port    = 7233,
+      membership_port = 6933
+      cpu             = var.temporal_ecs_task_resource_map["frontend"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["frontend"]["memory"]
+    },
+    history = {
+      request_port    = 7234,
+      membership_port = 6934
+      cpu             = var.temporal_ecs_task_resource_map["history"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["history"]["memory"]
+    },
+    matching = {
+      request_port    = 7235,
+      membership_port = 6935
+      cpu             = var.temporal_ecs_task_resource_map["matching"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["matching"]["memory"]
+    },
+    worker = {
+      request_port    = 7239,
+      membership_port = 6939
+      cpu             = var.temporal_ecs_task_resource_map["worker"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["worker"]["memory"]
+    }
+  }
   temporal_aurora_performance_insights_enabled = var.temporal_aurora_performance_insights_enabled
   temporal_aurora_engine_version               = var.temporal_aurora_engine_version
   temporal_aurora_serverless_min_capacity      = var.temporal_aurora_serverless_min_capacity
