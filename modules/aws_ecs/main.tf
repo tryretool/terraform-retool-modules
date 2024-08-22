@@ -190,7 +190,7 @@ resource "aws_ecs_service" "code_executor" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -462,7 +462,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           }
         ]
 
-        environment = compact(concat(
+        environment = concat(
           local.base_environment_variables,
           # https://docs.retool.com/reference/environment-variables/code-executor#container_unprivileged_mode
           var.launch_type == "FARGATE" ? [
@@ -471,7 +471,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
               value = "true"
             }
           ] : []
-        ))
+        )
       }
     ]
   )
