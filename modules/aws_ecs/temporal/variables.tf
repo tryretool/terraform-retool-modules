@@ -129,6 +129,12 @@ variable "temporal_aurora_backup_retention_period" {
   description = "Number of days to retain backups for Temporal Aurora. Defaults to 7."
 }
 
+variable "temporal_aurora_preferred_backup_window" {
+  type        = string
+  default     = "03:00-04:00"
+  description = "Preferred backup window for Temporal Aurora. Defaults to 03:00-04:00."
+}
+
 variable "additional_temporal_env_vars" {
   type        = list(map(string))
   default     = []

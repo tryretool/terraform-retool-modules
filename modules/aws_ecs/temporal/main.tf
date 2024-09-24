@@ -39,6 +39,7 @@ module "temporal_aurora_rds" {
   instances      = var.temporal_aurora_instances
 
   backup_retention_period = var.temporal_aurora_backup_retention_period
+  preferred_backup_window = var.temporal_aurora_preferred_backup_window
 }
 
 resource "aws_service_discovery_service" "temporal_frontend_service" {
