@@ -8,6 +8,10 @@ locals {
       name  = "IS_ONPREM",
       value = "true"
     },
+    {
+      name  = "DEPLOYMENT_TEMPLATE_TYPE"
+      value = var.launch_type == "FARGATE" ? "aws-ecs-fargate-terraform" : "aws-ecs-ec2-terraform"
+    }
   ]
 
   // Use var.ecs_code_executor_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
