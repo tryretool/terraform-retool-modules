@@ -525,13 +525,13 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 }
 
 module "temporal" {
-  count                                        = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
-  source                                       = "./temporal"
-  deployment_name                              = "${var.deployment_name}-temporal"
-  vpc_id                                       = var.vpc_id
-  subnet_ids                                   = var.private_subnet_ids
-  private_dns_namespace_id                     = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
-  aws_cloudwatch_log_group_id                  = aws_cloudwatch_log_group.this.id
+  count                       = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
+  source                      = "./temporal"
+  deployment_name             = "${var.deployment_name}-temporal"
+  vpc_id                      = var.vpc_id
+  subnet_ids                  = var.private_subnet_ids
+  private_dns_namespace_id    = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+  aws_cloudwatch_log_group_id = aws_cloudwatch_log_group.this.id
   temporal_services_config = {
     frontend = {
       request_port    = 7233,
@@ -562,6 +562,8 @@ module "temporal" {
   temporal_aurora_engine_version               = var.temporal_aurora_engine_version
   temporal_aurora_serverless_min_capacity      = var.temporal_aurora_serverless_min_capacity
   temporal_aurora_serverless_max_capacity      = var.temporal_aurora_serverless_max_capacity
+  temporal_aurora_backup_retention_period      = var.temporal_aurora_backup_retention_period
+  temporal_aurora_preferred_backup_window      = var.temporal_aurora_preferred_backup_window
   temporal_aurora_instances                    = var.temporal_aurora_instances
   aws_region                                   = var.aws_region
   aws_ecs_cluster_id                           = aws_ecs_cluster.this.id

@@ -103,7 +103,7 @@ variable "ecs_task_resource_map" {
     }
 
     code_executor = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
   }
@@ -112,8 +112,8 @@ variable "ecs_task_resource_map" {
 
 variable "temporal_ecs_task_resource_map" {
   type = map(object({
-      cpu    = number
-      memory = number
+    cpu    = number
+    memory = number
   }))
   default = {
     frontend = {
@@ -167,8 +167,8 @@ variable "rds_instance_engine_version" {
 }
 
 variable "rds_instance_auto_minor_version_upgrade" {
-  type = bool
-  default = true
+  type        = bool
+  default     = true
   description = "Whether to automatically upgrade the minor version of the Postgres RDS instance. Defaults to true."
 }
 
@@ -284,6 +284,18 @@ variable "temporal_aurora_serverless_max_capacity" {
   type        = number
   default     = 10
   description = "Maximum capacity for Temporal Aurora Serverless. Defaults to 10."
+}
+
+variable "temporal_aurora_backup_retention_period" {
+  type        = number
+  default     = 7
+  description = "Number of days to retain backups for Temporal Aurora. Defaults to 7."
+}
+
+variable "temporal_aurora_preferred_backup_window" {
+  type        = string
+  default     = "03:00-04:00"
+  description = "Preferred backup window for Temporal Aurora. Defaults to 03:00-04:00."
 }
 
 variable "temporal_aurora_instances" {
