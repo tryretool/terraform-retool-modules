@@ -525,7 +525,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 }
 
 module "temporal" {
-  count                       = var.workflows_enabled && !var.use_exising_temporal_cluster ? 1 : 0
+  count                       = var.workflows_enabled && !var.use_existing_temporal_cluster ? 1 : 0
   source                      = "./temporal"
   deployment_name             = "${var.deployment_name}-temporal"
   vpc_id                      = var.vpc_id
