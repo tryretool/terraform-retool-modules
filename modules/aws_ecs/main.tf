@@ -17,7 +17,7 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name = "${var.deployment_name}-retool"
+  name       = "${var.deployment_name}-retool"
   subnet_ids = var.private_subnet_ids
 }
 
@@ -37,6 +37,7 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids       = [aws_security_group.rds.id]
   db_subnet_group_name         = aws_db_subnet_group.this.id
   performance_insights_enabled = var.rds_performance_insights_enabled
+  storage_encrypted            = var.rds_instance_storage_encrypted
 
   skip_final_snapshot = true
   apply_immediately   = true
@@ -69,7 +70,7 @@ resource "aws_ecs_service" "retool" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
 
-    content {    
+    content {
       subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
@@ -97,7 +98,7 @@ resource "aws_ecs_service" "jobs_runner" {
 
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
-    content {    
+    content {
       subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
@@ -129,7 +130,7 @@ resource "aws_ecs_service" "workflows_backend" {
 
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
-    content {    
+    content {
       subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
@@ -157,7 +158,7 @@ resource "aws_ecs_service" "workflows_worker" {
 
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
-    content {    
+    content {
       subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
@@ -189,7 +190,7 @@ resource "aws_ecs_service" "code_executor" {
     for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
 
     content {
-      subnets = var.subnet_ids
+      subnets = var.private_subnet_ids
       security_groups = [
         aws_security_group.containers.id
       ]
@@ -419,14 +420,14 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
 }
 
 resource "aws_ecs_task_definition" "retool_code_executor" {
-  count         = var.code_executor_enabled ? 1 : 0
-  family        = "retool-code-executor"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ?  ["FARGATE"] : null
-  network_mode  = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu       = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-  memory    = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+  count                    = var.code_executor_enabled ? 1 : 0
+  family                   = "retool-code-executor"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
   container_definitions = jsonencode(
     [
       {
@@ -435,6 +436,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
         image     = local.ecs_code_executor_image
         cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user      = var.launch_type == "FARGATE" ? "1001:1001" : null
         command = [
           "./start.sh"
         ]
@@ -462,6 +464,13 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
 
         environment = concat(
           local.base_environment_variables,
+          # https://docs.retool.com/reference/environment-variables/code-executor#container_unprivileged_mode
+          var.launch_type == "FARGATE" ? [
+            {
+              name  = "CONTAINER_UNPRIVILEGED_MODE"
+              value = "true"
+            }
+          ] : []
         )
       }
     ]
@@ -516,17 +525,50 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 }
 
 module "temporal" {
-  count  = var.workflows_enabled && !var.use_existing_temporal_cluster ? 1 : 0
-  source = "./temporal"
-  deployment_name   = "${var.deployment_name}-temporal"
-  vpc_id = var.vpc_id
-  subnet_ids = var.private_subnet_ids
-  private_dns_namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+  count                       = var.workflows_enabled && !var.use_existing_temporal_cluster ? 1 : 0
+  source                      = "./temporal"
+  deployment_name             = "${var.deployment_name}-temporal"
+  vpc_id                      = var.vpc_id
+  subnet_ids                  = var.private_subnet_ids
+  private_dns_namespace_id    = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
   aws_cloudwatch_log_group_id = aws_cloudwatch_log_group.this.id
-  aws_region = var.aws_region
-  aws_ecs_cluster_id = aws_ecs_cluster.this.id
-  launch_type = var.launch_type
-  container_sg_id = aws_security_group.containers.id
-  aws_ecs_capacity_provider_name = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
-  task_propagate_tags = var.task_propagate_tags
+  temporal_services_config = {
+    frontend = {
+      request_port    = 7233,
+      membership_port = 6933
+      cpu             = var.temporal_ecs_task_resource_map["frontend"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["frontend"]["memory"]
+    },
+    history = {
+      request_port    = 7234,
+      membership_port = 6934
+      cpu             = var.temporal_ecs_task_resource_map["history"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["history"]["memory"]
+    },
+    matching = {
+      request_port    = 7235,
+      membership_port = 6935
+      cpu             = var.temporal_ecs_task_resource_map["matching"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["matching"]["memory"]
+    },
+    worker = {
+      request_port    = 7239,
+      membership_port = 6939
+      cpu             = var.temporal_ecs_task_resource_map["worker"]["cpu"]
+      memory          = var.temporal_ecs_task_resource_map["worker"]["memory"]
+    }
+  }
+  temporal_aurora_performance_insights_enabled = var.temporal_aurora_performance_insights_enabled
+  temporal_aurora_engine_version               = var.temporal_aurora_engine_version
+  temporal_aurora_serverless_min_capacity      = var.temporal_aurora_serverless_min_capacity
+  temporal_aurora_serverless_max_capacity      = var.temporal_aurora_serverless_max_capacity
+  temporal_aurora_backup_retention_period      = var.temporal_aurora_backup_retention_period
+  temporal_aurora_preferred_backup_window      = var.temporal_aurora_preferred_backup_window
+  temporal_aurora_instances                    = var.temporal_aurora_instances
+  aws_region                                   = var.aws_region
+  aws_ecs_cluster_id                           = aws_ecs_cluster.this.id
+  launch_type                                  = var.launch_type
+  container_sg_id                              = aws_security_group.containers.id
+  aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
+  task_propagate_tags                          = var.task_propagate_tags
 }

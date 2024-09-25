@@ -103,11 +103,37 @@ variable "ecs_task_resource_map" {
     }
 
     code_executor = {
-      cpu = 2048
+      cpu    = 2048
       memory = 4096
     }
   }
   description = "Amount of CPU and Memory provisioned for each task."
+}
+
+variable "temporal_ecs_task_resource_map" {
+  type = map(object({
+    cpu    = number
+    memory = number
+  }))
+  default = {
+    frontend = {
+      cpu    = 512
+      memory = 1024
+    },
+    history = {
+      cpu    = 512
+      memory = 2048
+    },
+    matching = {
+      cpu    = 512
+      memory = 1024
+    },
+    worker = {
+      cpu    = 512
+      memory = 1024
+    }
+  }
+  description = "Amount of CPU and Memory provisioned for each Temporal task."
 }
 
 variable "force_deployment" {
@@ -141,8 +167,8 @@ variable "rds_instance_engine_version" {
 }
 
 variable "rds_instance_auto_minor_version_upgrade" {
-  type = bool
-  default = true
+  type        = bool
+  default     = true
   description = "Whether to automatically upgrade the minor version of the Postgres RDS instance. Defaults to true."
 }
 
@@ -168,6 +194,12 @@ variable "rds_ca_cert_identifier" {
   type        = string
   default     = "rds-ca-rsa2048-g1"
   description = "The identifier of the CA certificate for the DB instance"
+}
+
+variable "rds_instance_storage_encrypted" {
+  type        = bool
+  default     = false
+  description = "Whether the RDS instance should have storage encrypted. Defaults to false."
 }
 
 variable "use_existing_temporal_cluster" {
@@ -234,6 +266,43 @@ variable "temporal_aurora_performance_insights_retention_period" {
   type        = number
   default     = 14
   description = "The time in days to retain Performance Insights for Temporal Aurora. Defaults to 14."
+}
+
+variable "temporal_aurora_engine_version" {
+  type        = string
+  default     = "14.5"
+  description = "Engine version for Temporal Aurora. Defaults to 14.5."
+}
+
+variable "temporal_aurora_serverless_min_capacity" {
+  type        = number
+  default     = 0.5
+  description = "Minimum capacity for Temporal Aurora Serverless. Defaults to 0.5."
+}
+
+variable "temporal_aurora_serverless_max_capacity" {
+  type        = number
+  default     = 10
+  description = "Maximum capacity for Temporal Aurora Serverless. Defaults to 10."
+}
+
+variable "temporal_aurora_backup_retention_period" {
+  type        = number
+  default     = 7
+  description = "Number of days to retain backups for Temporal Aurora. Defaults to 7."
+}
+
+variable "temporal_aurora_preferred_backup_window" {
+  type        = string
+  default     = "03:00-04:00"
+  description = "Preferred backup window for Temporal Aurora. Defaults to 03:00-04:00."
+}
+
+variable "temporal_aurora_instances" {
+  type = any
+  default = {
+    one = {}
+  }
 }
 
 variable "workflows_enabled" {
