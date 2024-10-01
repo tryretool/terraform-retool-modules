@@ -101,6 +101,12 @@ container_egress_rules = [
 ]
 ```
 
+### Telemetry
+**Note: telemetry collection is currently only supported for Fargate clusters.**
+
+To enable telemetry collection, set the variable `telemetry_enabled` to `true` (see [variables.tf](variables.tf#L340)).
+You may also enable forwarding telemetry data to Retool by setting the variable `telemetry_send_to_retool` to `true`.
+
 ### Environment Variables
 
 To add additional [Retool environment variables](https://docs.retool.com/docs/environment-variables) to your deployment, populate the `additional_env_vars` input variable into the module.
