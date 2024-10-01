@@ -73,16 +73,29 @@ variable "retool_license_key" {
   default     = "EXPIRED-LICENSE-KEY-TRIAL"
 }
 
+# TODO(v): update when published
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `3.28.7`"
-  default     = "tryretool/backend:3.28.7"
+  description = "Container image for desired Retool version. Defaults to `3.75.7-stable`"
+  default     = "tryretool/backend:3.75.7-stable"
 }
 
 variable "ecs_code_executor_image" {
   type        = string
-  description = "Container image for desired code_executor version. Defaults to `3.28.7`"
-  default     = "tryretool/code-executor-service:3.28.7"
+  description = "Container image for desired code_executor version. Defaults to `3.75.7-stable`"
+  default     = "tryretool/code-executor-service:3.75.7-stable"
+}
+
+variable "ecs_telemetry_image" {
+  type        = string
+  description = "Container image for desired telemetry sidecar version. Defaults to same version as ecs_retool_image (see locals.tf)."
+  default     = ""
+}
+
+variable "ecs_telemetry_fluentbit_image" {
+  type        = string
+  description = "Container image for desired fluent-bit sidecar version. Defaults to same version as ecs_retool_image (see locals.tf)."
+  default     = ""
 }
 
 variable "ecs_task_resource_map" {
@@ -107,10 +120,17 @@ variable "ecs_task_resource_map" {
       cpu    = 2048
       memory = 4096
     }
-
     code_executor = {
       cpu    = 2048
       memory = 4096
+    }
+    telemetry = {
+      cpu    = 1024
+      memory = 2048
+    }
+    fluentbit = {
+      cpu    = 512
+      memory = 1024
     }
   }
   description = "Amount of CPU and Memory provisioned for each task."
@@ -168,8 +188,8 @@ variable "rds_instance_class" {
 
 variable "rds_instance_engine_version" {
   type        = string
-  default     = "13.7"
-  description = "Version of the Postgres RDS instance. Defaults to 13.7"
+  default     = "13.15"
+  description = "Version of the Postgres RDS instance. Defaults to 13.15"
 }
 
 variable "rds_instance_auto_minor_version_upgrade" {
@@ -346,6 +366,36 @@ variable "code_executor_enabled" {
   type        = bool
   default     = false
   description = "Whether to enable code_executor service to support Python execution. Defaults to false."
+}
+
+variable "telemetry_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable on-prem telemetry. Defaults to false."
+}
+
+variable "telemetry_send_to_retool" {
+  type        = bool
+  default     = false
+  description = "Whether to send telemetry data to Retool. Defaults to false."
+}
+
+variable "telemetry_use_custom_config" {
+  type        = bool
+  default     = false
+  description = "Whether to use custom Vector configuration. Defaults to false."
+}
+
+variable "telemetry_custom_config_path" {
+  type        = string
+  default     = "vector-custom.yaml"
+  description = "Path to custom Vector configuration file for Retool telemetry. Defaults to vector-custom.yaml."
+}
+
+variable "enable_execute_command" {
+  type        = bool
+  default     = false
+  description = "Whether to enable command execution on containers (for debugging). Defaults to false."
 }
 
 variable "log_retention_in_days" {
