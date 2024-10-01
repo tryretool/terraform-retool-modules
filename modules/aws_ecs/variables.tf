@@ -46,7 +46,7 @@ variable "max_instance_count" {
 variable "min_instance_count" {
   type        = number
   description = "Min/desired number of EC2 instances. Defaults to 4."
-  default     = 3
+  default     = 2
 }
 
 variable "deployment_name" {
@@ -69,14 +69,21 @@ variable "retool_license_key" {
 
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `3.28.7`"
-  default     = "tryretool/backend:3.28.7"
+  description = "Container image for desired Retool version. Defaults to `3.75.1-stable`"
+  default     = "095027729292.dkr.ecr.us-west-2.amazonaws.com/local/retool-backend:3.75.1-stable"
 }
 
 variable "ecs_code_executor_image" {
   type        = string
-  description = "Container image for desired code_executor version. Defaults to `3.28.7`"
-  default     = "tryretool/code-executor-service:3.28.7"
+  description = "Container image for desired code_executor version. Defaults to `3.75.1-stable`"
+  default     = "tryretool/code-executor-service:3.75.1-stable"
+}
+
+# TODO(v): reference test image in ecr
+variable "ecs_telemetry_image" {
+  type        = string
+  description = "Container image for desired telemetry version. Defaults to `3.75.1-stable`"
+  default     = "095027729292.dkr.ecr.us-west-2.amazonaws.com/onprem-telemetry:v-obs180-4"
 }
 
 variable "ecs_task_resource_map" {
@@ -105,6 +112,11 @@ variable "ecs_task_resource_map" {
     code_executor = {
       cpu = 2048
       memory = 4096
+    }
+
+    telemetry = {
+      cpu    = 512
+      memory = 1024
     }
   }
   description = "Amount of CPU and Memory provisioned for each task."
@@ -303,6 +315,18 @@ variable "code_executor_enabled" {
   type        = bool
   default     = false
   description = "Whether to enable code_executor service to support Python execution. Defaults to false."
+}
+
+variable "telemetry_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable on-prem telemetry. Defaults to false."
+}
+
+variable "telemetry_send_to_retool" {
+  type        = bool
+  default     = true
+  description = "Whether to send telemetry data to Retool. Defaults to false."
 }
 
 variable "log_retention_in_days" {

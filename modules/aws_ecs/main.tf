@@ -52,6 +52,7 @@ resource "aws_ecs_service" "retool" {
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
   iam_role                           = var.launch_type == "EC2" ? aws_iam_role.service_role.arn : null
   propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = true
 
   load_balancer {
     target_group_arn = aws_lb_target_group.this.arn
@@ -81,11 +82,12 @@ resource "aws_ecs_service" "retool" {
 }
 
 resource "aws_ecs_service" "jobs_runner" {
-  name            = "${var.deployment_name}-jobs-runner-service"
-  cluster         = aws_ecs_cluster.this.id
-  desired_count   = 1
-  task_definition = aws_ecs_task_definition.retool_jobs_runner.arn
-  propagate_tags  = var.task_propagate_tags
+  name                   = "${var.deployment_name}-jobs-runner-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_jobs_runner.arn
+  propagate_tags         = var.task_propagate_tags
+  enable_execute_command = true
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -109,12 +111,13 @@ resource "aws_ecs_service" "jobs_runner" {
 }
 
 resource "aws_ecs_service" "workflows_backend" {
-  count           = var.workflows_enabled ? 1 : 0
-  name            = "${var.deployment_name}-workflows-backend-service"
-  cluster         = aws_ecs_cluster.this.id
-  desired_count   = 1
-  task_definition = aws_ecs_task_definition.retool_workflows_backend[0].arn
-  propagate_tags  = var.task_propagate_tags
+  count                  = var.workflows_enabled ? 1 : 0
+  name                   = "${var.deployment_name}-workflows-backend-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_workflows_backend[0].arn
+  propagate_tags         = var.task_propagate_tags
+  enable_execute_command = true
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -141,12 +144,13 @@ resource "aws_ecs_service" "workflows_backend" {
 }
 
 resource "aws_ecs_service" "workflows_worker" {
-  count           = var.workflows_enabled ? 1 : 0
-  name            = "${var.deployment_name}-workflows-worker-service"
-  cluster         = aws_ecs_cluster.this.id
-  desired_count   = 1
-  task_definition = aws_ecs_task_definition.retool_workflows_worker[0].arn
-  propagate_tags  = var.task_propagate_tags
+  count                  = var.workflows_enabled ? 1 : 0
+  name                   = "${var.deployment_name}-workflows-worker-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_workflows_worker[0].arn
+  propagate_tags         = var.task_propagate_tags
+  enable_execute_command = true
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -169,11 +173,12 @@ resource "aws_ecs_service" "workflows_worker" {
 }
 
 resource "aws_ecs_service" "code_executor" {
-  count           = var.code_executor_enabled ? 1 : 0
-  name            = "${var.deployment_name}-code-executor-service"
-  cluster         = aws_ecs_cluster.this.id
-  desired_count   = 1
-  task_definition = aws_ecs_task_definition.retool_code_executor[0].arn
+  count                  = var.code_executor_enabled ? 1 : 0
+  name                   = "${var.deployment_name}-code-executor-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_code_executor[0].arn
+  enable_execute_command = true
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -249,6 +254,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
     ]
   )
 }
+
+# TODO(v): need entirely separate resource block for telemetry disabled?
 resource "aws_ecs_task_definition" "retool" {
   family                   = "retool"
   task_role_arn            = aws_iam_role.task_role.arn
@@ -257,7 +264,7 @@ resource "aws_ecs_task_definition" "retool" {
   network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
-  container_definitions = jsonencode(
+  container_definitions = jsonencode(concat(
     [
       {
         name      = "retool"
@@ -269,12 +276,31 @@ resource "aws_ecs_task_definition" "retool" {
           "./docker_scripts/start_api.sh"
         ]
 
+        # logConfiguration = var.telemetry_enabled ? {
+        #   logDriver = "awsfirelens"
+        #   options = {
+        #     Name = "forward"
+        #     Host = "localhost"
+        #     Port = "9000"
+        #   }
+        # } : {
+        #   logDriver = "awslogs"
+        #   options = {
+        #     awslogs-group         = aws_cloudwatch_log_group.this.id
+        #     awslogs-region        = var.aws_region
+        #     awslogs-stream-prefix = "SERVICE_RETOOL"
+        #   }
+        # }
+
+        # TODO(v): this just gets passed through as a fluent-bit output
         logConfiguration = {
-          logDriver = "awslogs"
+          logDriver = "awsfirelens"
           options = {
-            awslogs-group         = aws_cloudwatch_log_group.this.id
-            awslogs-region        = var.aws_region
-            awslogs-stream-prefix = "SERVICE_RETOOL"
+            Name = "cloudwatch"
+            region = "us-west-2"
+            log_group_name = "retool-ecs-firelens"
+            auto_create_group = "true"
+            log_stream_prefix = "retool/"
           }
         }
 
@@ -300,8 +326,99 @@ resource "aws_ecs_task_definition" "retool" {
           ]
         )
       }
-    ]
-  )
+    ],
+
+    var.telemetry_enabled ? [
+      {
+        name = "fluentbit-log-router"
+        essential = true
+        # image = "amazon/aws-for-fluent-bit:stable"
+        image = "095027729292.dkr.ecr.us-west-2.amazonaws.com/retool-aws-for-fluent-bit:latest"
+        firelensConfiguration = {
+          type = "fluentbit"
+          options = {
+            config-file-type  = "file"
+            config-file-value = "/extra.conf"
+          }
+        }
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = "/ecs/ecs-aws-firelens-sidecar-container"
+            mode                  = "non-blocking"
+            awslogs-create-group  = "true"
+            max-buffer-size       = "25m"
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "SERVICE_RETOOL"
+          }
+        }
+      }
+    ] : [],
+
+    var.telemetry_enabled ? [
+      {
+        name      = "retool-telemetry"
+        essential = true
+        image     = var.ecs_telemetry_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["telemetry"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["telemetry"]["memory"] : null
+        command = [
+          "retool-telemetry"
+        ]
+
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.this.id
+            awslogs-region        = var.aws_region
+            awslogs-stream-prefix = "SERVICE_RETOOL"
+          }
+        }
+
+        portMappings = [
+          {
+            containerPort = 4317
+            hostPort      = 4317
+            protocol      = "tcp"
+          },
+          {
+            containerPort = 9000
+            hostPort      = 9000
+            protocol      = "tcp"
+          },
+          {
+            containerPort = 9090
+            hostPort      = 9090
+            protocol      = "tcp"
+          },
+          {
+            containerPort = 9126
+            hostPort      = 9126
+            protocol      = "udp"
+          }
+        ]
+
+        environment = concat(
+          local.environment_variables,
+          [
+            {
+              name  = "RTEL_DEPLOYMENT_MODE"
+              value = "aws-ecs"
+            },
+            {
+              name  = "RTEL_ENABLED"
+              value = "true"
+            },
+            {
+              name  = "RTEL_SEND_TO_RETOOL"
+              value = tostring(var.telemetry_send_to_retool)
+            }
+          ]
+        )
+      }
+    ] : []
+  ))
 }
 
 resource "aws_ecs_task_definition" "retool_workflows_backend" {
