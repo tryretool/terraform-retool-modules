@@ -478,7 +478,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "retoolsvc" {
-  count       = var.workflows_enabled ? 1 : 0
+  count       = var.workflows_enabled || var.code_executor_enabled ? 1 : 0
   name        = "retoolsvc"
   description = "Service Discovery namespace for Retool deployment"
   vpc         = var.vpc_id
