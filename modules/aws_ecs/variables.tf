@@ -214,6 +214,11 @@ variable "rds_storage_type" {
   description = "The storage volume type (standard, gp2, gp3, io1, or io2). Defaults to gp2"
 }
 
+variable "rds_storage_throughput" {
+  type        = number
+  description = "The storage throughput, in OPS, when using rds_storage_type = gp3"
+}
+
 variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false
