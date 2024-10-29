@@ -208,6 +208,12 @@ variable "rds_allocated_storage" {
   description = "The allocated storage in gibibytes. Defaults to 80"
 }
 
+variable "rds_storage_type" {
+  type        = string
+  default     = "gp2"
+  description = "The storage volume type (standard, gp2, gp3, io1, or io2). Defaults to gp2"
+}
+
 variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false

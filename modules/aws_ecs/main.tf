@@ -38,6 +38,7 @@ resource "aws_db_instance" "this" {
   db_subnet_group_name         = aws_db_subnet_group.this.id
   performance_insights_enabled = var.rds_performance_insights_enabled
   storage_encrypted            = var.rds_instance_storage_encrypted
+  storage_type                 = var.rds_storage_type
 
   skip_final_snapshot = true
   apply_immediately   = true
