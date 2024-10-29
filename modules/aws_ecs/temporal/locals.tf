@@ -31,6 +31,10 @@ locals {
         "value": random_string.temporal_aurora_password.result
       },
       {
+        "name" : "WORKFLOW_BACKEND_HOST",
+        "value" : "http://workflow-backend.retoolsvc:3000"
+      },
+      {
         "name": "DBNAME",
         "value": "temporal"
       },
