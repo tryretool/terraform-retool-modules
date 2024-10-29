@@ -216,7 +216,12 @@ variable "rds_storage_type" {
 
 variable "rds_storage_throughput" {
   type        = number
-  description = "The storage throughput, in OPS, when using rds_storage_type = gp3"
+  description = "The storage throughput (only valid when using rds_storage_type = gp3)"
+}
+
+variable "rds_iops" {
+  type        = number
+  description = "The storage provisioned IOPS  (only valid when using rds_storage_type = io1, io2, or gp3)"
 }
 
 variable "use_existing_temporal_cluster" {
