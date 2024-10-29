@@ -202,6 +202,12 @@ variable "rds_instance_storage_encrypted" {
   description = "Whether the RDS instance should have storage encrypted. Defaults to false."
 }
 
+variable "rds_allocated_storage" {
+  type        = number
+  default     = 80
+  description = "The allocated storage in gibibytes. Defaults to 80"
+}
+
 variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false

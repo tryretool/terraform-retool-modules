@@ -23,7 +23,7 @@ resource "aws_db_subnet_group" "this" {
 
 resource "aws_db_instance" "this" {
   identifier                   = "${var.deployment_name}-rds-instance"
-  allocated_storage            = 80
+  allocated_storage            = var.rds_allocated_storage
   instance_class               = var.rds_instance_class
   ca_cert_identifier           = var.rds_ca_cert_identifier
   engine                       = "postgres"
