@@ -14,7 +14,7 @@ locals {
     }
   ]
 
-  service_discovery_namespace = format("%s%s", replace(var.deployment_name, "-", ""), "svc")
+  service_discovery_namespace = var.service_discovery_namespace != "" ? var.service_discovery_namespace : format("%s%s", replace(var.deployment_name, "-", ""), "svc")
 
   // Use var.ecs_code_executor_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
   ecs_code_executor_image = var.ecs_code_executor_image != "" ? var.ecs_code_executor_image : format("%s:%s", "tryretool/code-executor-service", split(":", var.ecs_retool_image)[1])

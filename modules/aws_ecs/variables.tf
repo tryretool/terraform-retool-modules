@@ -55,6 +55,12 @@ variable "deployment_name" {
   default     = "retool"
 }
 
+variable "service_discovery_namespace" {
+  type        = string
+  description = "Service discovery namespace DNS name. Default is based on deployment name (see locals.tf)."
+  default     = ""
+}
+
 variable "task_propagate_tags" {
   type        = string
   description = "Which resource to propagate tags from for ECS service tasks. Defaults to `TASK_DEFINITION`"
