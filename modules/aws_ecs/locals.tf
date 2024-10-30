@@ -14,6 +14,8 @@ locals {
     }
   ]
 
+  service_discovery_namespace = format("%s%s", replace(var.deployment_name, "-", ""), "svc")
+
   // Use var.ecs_code_executor_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
   ecs_code_executor_image = var.ecs_code_executor_image != "" ? var.ecs_code_executor_image : format("%s:%s", "tryretool/code-executor-service", split(":", var.ecs_retool_image)[1])
 
@@ -24,7 +26,7 @@ locals {
     var.code_executor_enabled ? [
       {
         name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
-        value = "http://code-executor.retoolsvc:3004"
+        value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
       }
     ] : [],
     [
@@ -71,7 +73,7 @@ locals {
       # Workflows-specific
       {
         "name" : "WORKFLOW_BACKEND_HOST",
-        "value" : "http://workflow-backend.retoolsvc:3000"
+        "value" : format("http://workflow-backend.%s:3000", local.service_discovery_namespace)
       },
       {
         "name" : "WORKFLOW_TEMPORAL_CLUSTER_NAMESPACE",
@@ -79,7 +81,7 @@ locals {
       },
       {
         "name" : "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_HOST",
-        "value" : var.temporal_cluster_config.host
+        "value" : format("%s.%s", var.temporal_cluster_config.hostname, local.service_discovery_namespace)
       },
       {
         "name" : "WORKFLOW_TEMPORAL_CLUSTER_FRONTEND_PORT",

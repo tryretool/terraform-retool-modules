@@ -246,7 +246,7 @@ variable "launch_type" {
 # namescape: temporal namespace to use for Retool Workflows. We recommend this is only used by Retool.
 # If use_existing_temporal_cluster == true this should be config for currently existing cluster. 
 # If use_existing_temporal_cluster == false, you should use the defaults.
-# host: hostname for Temporal Frontend service
+# hostname: hostname for Temporal Frontend service
 # port: port for Temporal Frontend service
 # tls_enabled: Whether to use tls when connecting to Temporal Frontend. For mTLS, configure tls_crt and tls_key.
 # tls_crt: For mTLS only. Base64 encoded string of public tls certificate
@@ -254,7 +254,7 @@ variable "launch_type" {
 variable "temporal_cluster_config" {
   type = object({
     namespace   = string
-    host        = string
+    hostname    = string
     port        = string
     tls_enabled = bool
     tls_crt     = optional(string)
@@ -263,7 +263,7 @@ variable "temporal_cluster_config" {
 
   default = {
     namespace   = "workflows"
-    host        = "temporal.retoolsvc"
+    hostname    = "temporal"
     port        = "7233"
     tls_enabled = false
   }
