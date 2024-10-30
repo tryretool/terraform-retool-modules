@@ -23,7 +23,7 @@ resource "aws_db_subnet_group" "this" {
 
 resource "aws_db_instance" "this" {
   identifier                   = "${var.deployment_name}-rds-instance"
-  allocated_storage            = 80
+  allocated_storage            = var.rds_allocated_storage
   instance_class               = var.rds_instance_class
   ca_cert_identifier           = var.rds_ca_cert_identifier
   engine                       = "postgres"
@@ -38,6 +38,9 @@ resource "aws_db_instance" "this" {
   db_subnet_group_name         = aws_db_subnet_group.this.id
   performance_insights_enabled = var.rds_performance_insights_enabled
   storage_encrypted            = var.rds_instance_storage_encrypted
+  storage_type                 = var.rds_storage_type
+  storage_throughput           = var.rds_storage_throughput
+  iops                         = var.rds_iops
 
   skip_final_snapshot = true
   apply_immediately   = true

@@ -202,6 +202,31 @@ variable "rds_instance_storage_encrypted" {
   description = "Whether the RDS instance should have storage encrypted. Defaults to false."
 }
 
+variable "rds_allocated_storage" {
+  type        = number
+  default     = 80
+  description = "The allocated storage in gibibytes. Defaults to 80"
+}
+
+variable "rds_storage_type" {
+  type        = string
+  default     = "gp2"
+  description = "The storage volume type (standard, gp2, gp3, io1, or io2). Defaults to gp2"
+}
+
+variable "rds_storage_throughput" {
+  type        = number
+  default     = null
+  description = "The storage throughput (only valid when using rds_storage_type = gp3)"
+
+}
+
+variable "rds_iops" {
+  type        = number
+  default     = null
+  description = "The storage provisioned IOPS  (only valid when using rds_storage_type = io1, io2, or gp3)"
+}
+
 variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false
