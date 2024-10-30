@@ -480,9 +480,9 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
   )
 }
 
-resource "aws_service_discovery_private_dns_namespace" "retoolsvc" {
-  count       = var.workflows_enabled ? 1 : 0
-  name        = "retoolsvc"
+resource "aws_service_discovery_private_dns_namespace" "retool_namespace" {
+  count       = (var.code_executor_enabled || var.workflows_enabled) ? 1 : 0
+  name        = local.service_discovery_namespace
   description = "Service Discovery namespace for Retool deployment"
   vpc         = var.vpc_id
 }
@@ -492,7 +492,7 @@ resource "aws_service_discovery_service" "retool_workflow_backend_service" {
   name  = "workflow-backend"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+    namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
 
     dns_records {
       ttl  = 60
@@ -512,7 +512,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
   name  = "code-executor"
 
   dns_config {
-    namespace_id = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+    namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
 
     dns_records {
       ttl  = 60
@@ -533,7 +533,7 @@ module "temporal" {
   deployment_name             = "${var.deployment_name}-temporal"
   vpc_id                      = var.vpc_id
   subnet_ids                  = var.private_subnet_ids
-  private_dns_namespace_id    = aws_service_discovery_private_dns_namespace.retoolsvc[0].id
+  private_dns_namespace_id    = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
   aws_cloudwatch_log_group_id = aws_cloudwatch_log_group.this.id
   temporal_services_config = {
     frontend = {
@@ -574,4 +574,5 @@ module "temporal" {
   container_sg_id                              = aws_security_group.containers.id
   aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
   task_propagate_tags                          = var.task_propagate_tags
+  service_discovery_namespace                  = local.service_discovery_namespace
 }

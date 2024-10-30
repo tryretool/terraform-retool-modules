@@ -1,5 +1,5 @@
 # namescape: temporal namespace to use for Retool Workflows. We recommend this is only used by Retool.
-# host: hostname for Temporal Frontend service
+# hostname: hostname for Temporal Frontend service
 # port: port for Temporal Frontend service
 # tls_enabled: Whether to use tls when connecting to Temporal Frontend. For mTLS, configure tls_crt and tls_key.
 # tls_crt: For mTLS only. Base64 encoded string of public tls certificate
@@ -7,7 +7,7 @@
 variable "temporal_cluster_config" {
   type = object({
     namespace   = string
-    host        = string
+    hostname    = string
     port        = string
     tls_enabled = bool
     tls_crt     = optional(string)
@@ -16,7 +16,7 @@ variable "temporal_cluster_config" {
 
   default = {
     namespace   = "workflows"
-    host        = "temporal.retoolsvc"
+    hostname    = "temporal"
     port        = "7233"
     tls_enabled = false
   }
@@ -206,3 +206,7 @@ variable "task_propagate_tags" {
   default     = "TASK_DEFINITION"
 }
 
+variable "service_discovery_namespace" {
+  type        = string
+  description = "Service discovery namespace DNS name for Retool ECS cluster."
+}

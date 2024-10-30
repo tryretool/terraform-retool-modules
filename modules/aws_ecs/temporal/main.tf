@@ -150,7 +150,7 @@ resource "aws_ecs_task_definition" "retool_temporal" {
           ],
           each.key != "frontend" ? [{
             "name" : "PUBLIC_FRONTEND_ADDRESS",
-            "value" : "${var.temporal_cluster_config.host}:${var.temporal_cluster_config.port}"
+            "value" : "${var.temporal_cluster_config.hostname}.${var.service_discovery_namespace}:${var.temporal_cluster_config.port}"
             }
           ] : []
         )
