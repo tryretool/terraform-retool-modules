@@ -376,8 +376,8 @@ variable "telemetry_enabled" {
 
 variable "telemetry_send_to_retool" {
   type        = bool
-  default     = false
-  description = "Whether to send telemetry data to Retool. Defaults to false."
+  default     = true
+  description = "Whether to send telemetry data to Retool. Defaults to true."
 }
 
 variable "telemetry_use_custom_config" {
