@@ -565,7 +565,7 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
           ],
           var.telemetry_use_custom_config ? [
             {
-              name  = "VECTOR_CUSTOM_CONFIG_ECS"
+              name  = "VECTOR_CUSTOM_CONFIG_ECS_BASE64"
               value = base64encode(file(var.telemetry_custom_config_path))
             }
           ] : []
