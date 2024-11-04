@@ -9,6 +9,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+  alias = var.instance_name
 }
 
 data "aws_ami" "this" {
