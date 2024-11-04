@@ -94,11 +94,11 @@ resource "aws_instance" "this" {
   cd retool-onpremise
 
   # Rewrite Dockerfile
-  echo FROM tryretool/backend:${var.version_number} > Dockerfile
+  echo FROM ${var.backend_image_name}:${var.version_number} > Dockerfile
   echo CMD ./docker_scripts/start_api.sh >> Dockerfile
 
   # Rewrite CodeExecutor.Dockerfile 
-  echo FROM tryretool/code-executor-service:${var.version_number} > CodeExecutor.Dockerfile 
+  echo FROM ${var.code_executor_image_name}:${var.version_number} > CodeExecutor.Dockerfile 
   echo CMD bash start.sh >> CodeExecutor.Dockerfile 
 
   # Initialize Docker and Retool Installation

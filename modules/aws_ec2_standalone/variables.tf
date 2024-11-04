@@ -16,6 +16,18 @@ variable "instance_name" {
   description = "EC2 instance name. Defaults to `retool`."
 }
 
+variable "backend_image_name" {
+  type        = string
+  default     = "tryretool/backend"
+  description = "Docker Hub image name for the main backend image"
+}
+
+variable "code_executor_image_name" {
+  type        = string
+  default     = "tryretool/code-executor-service"
+  description = "Docker Hub image name for the code executor image"
+}
+
 variable "version_number" {
   type        = string
   default     = "2.106.2"
