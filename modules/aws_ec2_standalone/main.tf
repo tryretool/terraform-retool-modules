@@ -9,7 +9,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  alias = var.instance_name
+  alias = "provider-aws-ec2-standalone"
 }
 
 data "aws_ami" "this" {
