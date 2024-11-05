@@ -34,6 +34,12 @@ variable "version_number" {
   description = "Retool version number. Defaults to `2.106.2`."
 }
 
+variable "code_executor_version_number" {
+  type        = string
+  default     = "2.106.2"
+  description = "Retool code executor version number. Defaults to `2.106.2`."
+}
+
 variable "vpc_id" {
   type        = string
   default     = null
