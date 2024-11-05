@@ -108,3 +108,9 @@ resource "aws_instance" "this" {
   docker-compose up -d
   EOF
 }
+
+resource "aws_eip" "ec2_attached_elastic_ip" {
+  count    = var.attach_eip ? 1 : 0
+  instance = aws_instance.this.id
+  vpc      = true
+}

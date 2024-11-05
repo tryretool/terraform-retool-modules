@@ -166,3 +166,8 @@ variable "egress_rules" {
   description = "Egress rules for EC2 security group"
 }
 
+variable "attach_eip" {
+  type        = bool
+  default     = true
+  description = "Whether to attach an Elastic IP to the EC2 instance."
+}
