@@ -233,6 +233,12 @@ variable "rds_iops" {
   description = "The storage provisioned IOPS  (only valid when using rds_storage_type = io1, io2, or gp3)"
 }
 
+variable "rds_multi_az" {
+  type        = bool
+  default     = false
+  description = "Whether the RDS instance should have Multi-AZ enabled. Defaults to false."
+}
+
 variable "use_existing_temporal_cluster" {
   type        = bool
   default     = false
