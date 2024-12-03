@@ -4,7 +4,7 @@ Disclaimer: Please use these modules only if you're comfortable configuring Terr
 
 # Prerequisites
 
-- All modules have been test on **Hashicorp Terraform v1.3.7**
+- All modules have been tested on **Hashicorp Terraform v1.3.7**
 - The AWS Provider version is set to **v5.0**
 
 # Usage
