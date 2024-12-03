@@ -6,8 +6,8 @@ variable "aws_region" {
 
 variable "instance_type" {
   type        = string
-  default     = "t3.large"
-  description = "EC2 instance type. Defaults to `t3.large`."
+  default     = "t3.xlarge"
+  description = "EC2 instance type. Defaults to `t3.xlarge`."
 }
 
 variable "instance_name" {
