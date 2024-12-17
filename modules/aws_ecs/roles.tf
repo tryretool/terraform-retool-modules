@@ -9,10 +9,27 @@ data "aws_iam_policy_document" "task_role_assume_policy" {
   }
 }
 
+data "aws_iam_policy_document" "task_role_policy" {
+  statement {
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel",
+    ]
+    resources = ["*"]
+  }
+}
+
 resource "aws_iam_role" "task_role" {
   name               = "${var.deployment_name}-task-role"
   assume_role_policy = data.aws_iam_policy_document.task_role_assume_policy.json
   path               = "/"
+
+  inline_policy {
+    name   = "${var.deployment_name}-task-policy"
+    policy = data.aws_iam_policy_document.task_role_policy.json
+  }
 }
 
 data "aws_iam_policy_document" "service_role_assume_policy" {
