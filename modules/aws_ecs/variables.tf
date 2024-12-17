@@ -73,17 +73,16 @@ variable "retool_license_key" {
   default     = "EXPIRED-LICENSE-KEY-TRIAL"
 }
 
-# TODO(v): update when published
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `3.75.7-stable`"
-  default     = "tryretool/backend:3.75.7-stable"
+  description = "Container image for desired Retool version. Defaults to `3.114.2-stable`"
+  default     = "tryretool/backend:3.114.2-stable"
 }
 
 variable "ecs_code_executor_image" {
   type        = string
-  description = "Container image for desired code_executor version. Defaults to `3.75.7-stable`"
-  default     = "tryretool/code-executor-service:3.75.7-stable"
+  description = "Container image for desired code_executor version. Defaults to `3.114.2-stable`"
+  default     = "tryretool/code-executor-service:3.114.2-stable"
 }
 
 variable "ecs_telemetry_image" {
@@ -95,7 +94,7 @@ variable "ecs_telemetry_image" {
 variable "ecs_telemetry_fluentbit_image" {
   type        = string
   description = "Container image for desired fluent-bit sidecar version. Defaults to same version as ecs_retool_image (see locals.tf)."
-  default     = ""
+  default     = "tryretool/retool-aws-for-fluent-bit:3.120.0-edge"
 }
 
 variable "ecs_task_resource_map" {
