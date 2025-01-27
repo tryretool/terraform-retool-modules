@@ -454,12 +454,16 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
     local.common_containers,
     [
       {
-        name      = "retool-code-executor"
-        essential = true
-        image     = local.ecs_code_executor_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user      = var.launch_type == "FARGATE" ? "1001:1001" : null
+        name       = "retool-code-executor"
+        essential  = true
+        image      = local.ecs_code_executor_image
+        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
+        # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
+        # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
+        privileged = var.launch_type == "EC2" ? true : false
         command = [
           "./start.sh"
         ]
@@ -480,6 +484,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
 
         environment = concat(
           local.base_environment_variables,
+          [
+            {
+              name = "NODE_OPTIONS",
+              value = "--max_old_space_size=1024"
+            }
+          ],
           # https://docs.retool.com/reference/environment-variables/code-executor#container_unprivileged_mode
           var.launch_type == "FARGATE" ? [
             {
