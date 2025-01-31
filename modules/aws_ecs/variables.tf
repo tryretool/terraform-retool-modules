@@ -445,6 +445,16 @@ variable "secret_length" {
   description = "Length of secrets generated (e.g. ENCRYPTION_KEY, RDS_PASSWORD). Defaults to 48."
 }
 
+variable "encryption_key" {
+  type        = string
+  description = "ENCRYPTION_KEY"
+}
+
+variable "jwt_secret" {
+  type        = string
+  description = "JWT_SECRET"
+}
+
 variable "autoscaling_memory_reservation_target" {
   type        = number
   default     = 70.0
