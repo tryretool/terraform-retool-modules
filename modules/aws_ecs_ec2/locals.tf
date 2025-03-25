@@ -47,8 +47,8 @@ locals {
         "value" : var.retool_license_key
       },
       {
-        "name": "DEPLOYMENT_TEMPLATE_TYPE"
-        "value": "aws-ecs-ec2-terraform-deprecated"
+        "name" : "DEPLOYMENT_TEMPLATE_TYPE"
+        "value" : "aws-ecs-ec2-terraform-deprecated"
       }
     ]
   )

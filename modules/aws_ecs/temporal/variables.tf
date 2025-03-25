@@ -210,3 +210,9 @@ variable "service_discovery_namespace" {
   type        = string
   description = "Service discovery namespace DNS name for Retool ECS cluster."
 }
+
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
+}

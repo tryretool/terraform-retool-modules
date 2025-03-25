@@ -22,7 +22,7 @@ resource "aws_ecs_cluster" "this" {
 
 data "aws_ami" "this" {
   most_recent = true # get the latest version
-  name_regex = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
+  name_regex  = "^amzn2-ami-ecs-hvm-\\d\\.\\d\\.\\d{8}-x86_64-ebs$"
 
   filter {
     name = "virtualization-type"
@@ -65,7 +65,7 @@ resource "aws_launch_configuration" "this" {
 
   # Allow the EC2 instances to access AWS resources on your behalf, using this instance profile and the permissions defined there
   iam_instance_profile = aws_iam_instance_profile.ec2.arn
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -144,7 +144,7 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier                    = "${var.deployment_name}-rds-instance"
+  identifier                   = "${var.deployment_name}-rds-instance"
   allocated_storage            = 80
   instance_class               = var.rds_instance_class
   engine                       = "postgres"
@@ -157,9 +157,9 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids       = [aws_security_group.rds.id]
   performance_insights_enabled = var.rds_performance_insights_enabled
   multi_az                     = var.rds_multi_az
-  
-  skip_final_snapshot          = true
-  apply_immediately           = true
+
+  skip_final_snapshot = true
+  apply_immediately   = true
 }
 
 resource "aws_ecs_service" "retool" {

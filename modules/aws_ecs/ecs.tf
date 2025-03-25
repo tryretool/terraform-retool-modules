@@ -5,6 +5,8 @@ resource "aws_ecs_cluster" "this" {
     name  = "containerInsights"
     value = var.ecs_insights_enabled
   }
+
+  tags = var.tags
 }
 
 # Fargate capacity provider
@@ -46,7 +48,7 @@ resource "aws_launch_configuration" "this" {
   enable_monitoring           = true
   associate_public_ip_address = true
 
-  # This user data represents a collection of “scripts” that will be executed the first time the machine starts.
+  # This user data represents a collection of "scripts" that will be executed the first time the machine starts.
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier
   # and marks the instance as purchased through the Spot pricing
   user_data = <<-EOF
@@ -54,7 +56,7 @@ resource "aws_launch_configuration" "this" {
   echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
   EOF
 
-  # We’ll see security groups later
+  # We'll see security groups later
   security_groups = [
     aws_security_group.containers.id
   ]
@@ -89,22 +91,18 @@ resource "aws_autoscaling_group" "this" {
     "OldestInstance"
   ]
 
-  tag {
-    key                 = "AmazonECSManaged"
-    value               = ""
-    propagate_at_launch = true
-  }
+  dynamic "tag" {
+    for_each = merge({
+      AmazonECSManaged = "",
+      Cluster          = "${var.deployment_name}-ecs",
+      Name             = "${var.deployment_name}-ec2-instance"
+    }, var.tags)
 
-  tag {
-    key                 = "Cluster"
-    value               = "${var.deployment_name}-ecs"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "${var.deployment_name}-ec2-instance"
-    propagate_at_launch = true
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
   }
 
   lifecycle {

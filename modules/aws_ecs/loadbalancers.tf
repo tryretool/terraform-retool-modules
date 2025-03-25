@@ -1,9 +1,11 @@
 resource "aws_lb" "this" {
-  name         = "${var.deployment_name}-alb"
-  idle_timeout = var.alb_idle_timeout
-
-  security_groups = [aws_security_group.alb.id]
-  subnets         = var.public_subnet_ids
+  name               = "${var.deployment_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = var.public_subnet_ids
+  idle_timeout       = var.alb_idle_timeout
+  tags               = var.tags
 }
 
 resource "aws_lb_listener" "this" {
@@ -53,19 +55,22 @@ resource "aws_lb_listener_rule" "this" {
 }
 
 resource "aws_lb_target_group" "this" {
-  name                 = "${var.deployment_name}-target"
-  vpc_id               = var.vpc_id
-  deregistration_delay = 30
-  port                 = 3000
-  protocol             = "HTTP"
-  target_type          = var.launch_type == "FARGATE" ? "ip" : "instance"
+  name        = "${var.deployment_name}-target-group"
+  port        = 3000
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = var.launch_type == "FARGATE" ? "ip" : "instance"
+  tags        = var.tags
 
   health_check {
-    interval            = 61
+    enabled             = true
+    healthy_threshold   = 2
+    interval            = 15
+    matcher             = "200"
     path                = "/api/checkHealth"
+    port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 60
-    healthy_threshold   = 3
-    unhealthy_threshold = 2
+    timeout             = 10
+    unhealthy_threshold = 10
   }
 }

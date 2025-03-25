@@ -596,3 +596,9 @@ variable "alb_egress_rules" {
   ]
   description = "Egress rules for load balancer"
 }
+
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
+}
