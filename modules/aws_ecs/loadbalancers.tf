@@ -55,22 +55,21 @@ resource "aws_lb_listener_rule" "this" {
 }
 
 resource "aws_lb_target_group" "this" {
-  name        = "${var.deployment_name}-target"
-  port        = 3000
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = var.launch_type == "FARGATE" ? "ip" : "instance"
-  tags        = var.tags
+  name                 = "${var.deployment_name}-target"
+  vpc_id               = var.vpc_id
+  deregistration_delay = 30
+  port                 = 3000
+  protocol             = "HTTP"
+  target_type          = var.launch_type == "FARGATE" ? "ip" : "instance"
 
   health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 15
-    matcher             = "200"
+    interval            = 61
     path                = "/api/checkHealth"
-    port                = "traffic-port"
     protocol            = "HTTP"
-    timeout             = 10
-    unhealthy_threshold = 10
+    timeout             = 60
+    healthy_threshold   = 3
+    unhealthy_threshold = 2
   }
+
+  tags = var.tags
 }
