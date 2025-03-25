@@ -694,6 +694,7 @@ module "temporal" {
   temporal_aurora_backup_retention_period      = var.temporal_aurora_backup_retention_period
   temporal_aurora_preferred_backup_window      = var.temporal_aurora_preferred_backup_window
   temporal_aurora_instances                    = var.temporal_aurora_instances
+  temporal_image                               = var.temporal_image
   aws_region                                   = var.aws_region
   aws_ecs_cluster_id                           = aws_ecs_cluster.this.id
   launch_type                                  = var.launch_type
