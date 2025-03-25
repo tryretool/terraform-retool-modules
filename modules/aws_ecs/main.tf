@@ -14,11 +14,13 @@ data "aws_vpc" "selected" {
 resource "aws_cloudwatch_log_group" "this" {
   name              = "${var.deployment_name}-ecs-log-group"
   retention_in_days = var.log_retention_in_days
+  tags              = var.tags
 }
 
 resource "aws_db_subnet_group" "this" {
   name       = "${var.deployment_name}-retool"
   subnet_ids = var.private_subnet_ids
+  tags       = var.tags
 }
 
 resource "aws_db_instance" "this" {
@@ -42,6 +44,7 @@ resource "aws_db_instance" "this" {
   storage_throughput           = var.rds_storage_throughput
   iops                         = var.rds_iops
   multi_az                     = var.rds_multi_az
+  tags                         = var.tags
 
   skip_final_snapshot = true
   apply_immediately   = true
@@ -454,12 +457,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
     local.common_containers,
     [
       {
-        name       = "retool-code-executor"
-        essential  = true
-        image      = local.ecs_code_executor_image
-        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        name      = "retool-code-executor"
+        essential = true
+        image     = local.ecs_code_executor_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user      = var.launch_type == "EC2" ? null : "1001:1001"
         # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
         # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
         # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
@@ -486,7 +489,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           local.base_environment_variables,
           [
             {
-              name = "NODE_OPTIONS",
+              name  = "NODE_OPTIONS",
               value = "--max_old_space_size=1024"
             }
           ],
@@ -591,11 +594,13 @@ resource "aws_service_discovery_private_dns_namespace" "retool_namespace" {
   name        = local.service_discovery_namespace
   description = "Service Discovery namespace for Retool deployment"
   vpc         = var.vpc_id
+  tags        = var.tags
 }
 
 resource "aws_service_discovery_service" "retool_workflow_backend_service" {
   count = var.workflows_enabled ? 1 : 0
   name  = "workflow-backend"
+  tags  = var.tags
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
@@ -635,7 +640,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 
 resource "aws_service_discovery_service" "retool_telemetry_service" {
   count = var.telemetry_enabled ? 1 : 0
-  name = "telemetry"
+  name  = "telemetry"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
@@ -701,4 +706,5 @@ module "temporal" {
   aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
   task_propagate_tags                          = var.task_propagate_tags
   service_discovery_namespace                  = local.service_discovery_namespace
+  tags                                         = var.tags
 }

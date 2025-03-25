@@ -1,9 +1,11 @@
 resource "aws_lb" "this" {
-  name         = "${var.deployment_name}-alb"
-  idle_timeout = var.alb_idle_timeout
-
-  security_groups = [aws_security_group.alb.id]
-  subnets         = var.public_subnet_ids
+  name               = "${var.deployment_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = var.public_subnet_ids
+  idle_timeout       = var.alb_idle_timeout
+  tags               = var.tags
 }
 
 resource "aws_lb_listener" "this" {
@@ -68,4 +70,6 @@ resource "aws_lb_target_group" "this" {
     healthy_threshold   = 3
     unhealthy_threshold = 2
   }
+
+  tags = var.tags
 }

@@ -25,6 +25,7 @@ resource "aws_iam_role" "task_role" {
   name               = "${var.deployment_name}-task-role"
   assume_role_policy = data.aws_iam_policy_document.task_role_assume_policy.json
   path               = "/"
+  tags               = var.tags
 
   inline_policy {
     name   = "${var.deployment_name}-task-policy"
@@ -62,6 +63,7 @@ resource "aws_iam_role" "service_role" {
   name               = "${var.deployment_name}-service-role"
   assume_role_policy = data.aws_iam_policy_document.service_role_assume_policy.json
   path               = "/"
+  tags               = var.tags
 
   inline_policy {
     name   = "${var.deployment_name}-service-policy"
@@ -85,6 +87,7 @@ resource "aws_iam_role" "execution_role" {
   count              = var.launch_type == "FARGATE" ? 1 : 0
   name               = "${var.deployment_name}-execution-role"
   assume_role_policy = data.aws_iam_policy_document.execution_role_assume_policy.json
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "execution_role" {
@@ -105,6 +108,7 @@ resource "aws_iam_role" "ec2" {
   name               = "${var.deployment_name}-ec2-iam-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_policy.json
   path               = "/"
+  tags               = var.tags
 
   inline_policy {
     name   = "${var.deployment_name}-ec2-policy"
