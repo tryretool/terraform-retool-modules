@@ -57,3 +57,13 @@ output "iam_task_role_name" {
   value       = aws_iam_role.task_role.name
   description = "IAM role name for all ECS tasks"
 }
+
+output "security_group_id" {
+  description = "Security group ID for ECS containers"
+  value       = aws_security_group.containers.id
+}
+
+output "ecs_alb_zone_id" {
+  description = "Zone ID for Retool ALB"
+  value = aws_lb.this.zone_id
+}
