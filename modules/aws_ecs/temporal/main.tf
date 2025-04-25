@@ -2,11 +2,12 @@ module "temporal_aurora_rds" {
   source  = "terraform-aws-modules/rds-aurora/aws"
   version = "8.5.0"
 
-  name              = "${var.deployment_name}-temporal-rds-instance"
-  engine            = "aurora-postgresql"
-  engine_mode       = "provisioned"
-  engine_version    = var.temporal_aurora_engine_version
-  storage_encrypted = true
+  name                        = "${var.deployment_name}-temporal-rds-instance"
+  engine                      = "aurora-postgresql"
+  engine_mode                 = "provisioned"
+  engine_version              = var.temporal_aurora_engine_version
+  allow_major_version_upgrade = var.allow_rds_major_version_upgrade
+  storage_encrypted           = true
 
   vpc_id = var.vpc_id
 

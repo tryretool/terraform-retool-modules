@@ -42,6 +42,7 @@ resource "aws_db_instance" "this" {
   storage_throughput           = var.rds_storage_throughput
   iops                         = var.rds_iops
   multi_az                     = var.rds_multi_az
+  allow_major_version_upgrade  = var.allow_rds_major_version_upgrade
 
   skip_final_snapshot = true
   apply_immediately   = true
@@ -454,12 +455,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
     local.common_containers,
     [
       {
-        name       = "retool-code-executor"
-        essential  = true
-        image      = local.ecs_code_executor_image
-        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        name      = "retool-code-executor"
+        essential = true
+        image     = local.ecs_code_executor_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user      = var.launch_type == "EC2" ? null : "1001:1001"
         # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
         # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
         # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
@@ -486,7 +487,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           local.base_environment_variables,
           [
             {
-              name = "NODE_OPTIONS",
+              name  = "NODE_OPTIONS",
               value = "--max_old_space_size=1024"
             }
           ],
@@ -635,7 +636,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 
 resource "aws_service_discovery_service" "retool_telemetry_service" {
   count = var.telemetry_enabled ? 1 : 0
-  name = "telemetry"
+  name  = "telemetry"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
@@ -701,4 +702,5 @@ module "temporal" {
   aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
   task_propagate_tags                          = var.task_propagate_tags
   service_discovery_namespace                  = local.service_discovery_namespace
+  allow_rds_major_version_upgrade              = var.allow_rds_major_version_upgrade
 }

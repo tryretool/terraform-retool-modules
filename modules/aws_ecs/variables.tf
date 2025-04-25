@@ -596,3 +596,9 @@ variable "alb_egress_rules" {
   ]
   description = "Egress rules for load balancer"
 }
+
+variable "allow_rds_major_version_upgrade" {
+  type        = bool
+  default     = false
+  description = "Whether to allow major version upgrades for RDS. Defaults to false, set to true when upgrading Retool."
+}
