@@ -44,7 +44,7 @@ resource "aws_launch_configuration" "this" {
   instance_type = var.instance_type # e.g. t2.medium
 
   enable_monitoring           = true
-  associate_public_ip_address = true
+  associate_public_ip_address = var.associate_public_ip_address
 
   # This user data represents a collection of “scripts” that will be executed the first time the machine starts.
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier

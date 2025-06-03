@@ -43,6 +43,12 @@ variable "min_instance_count" {
   default     = 3
 }
 
+variable "associate_public_ip_address" {
+  type        = bool
+  description = "Whether to associate a public IP address with an EC2 instance in a VPC. Defaults to true."
+  default     = true
+}
+
 variable "deployment_name" {
   type        = string
   description = "Name prefix for created resources. Defaults to `retool`."
