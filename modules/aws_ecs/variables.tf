@@ -55,6 +55,12 @@ variable "associate_public_ip_address" {
   default     = true
 }
 
+variable "assign_public_ip" {
+  type        = bool
+  description = "Whether to assign a public IP address to Fargate tasks. Defaults to false."
+  default     = true
+}
+
 variable "deployment_name" {
   type        = string
   description = "Name prefix for created resources. Defaults to `retool`."
