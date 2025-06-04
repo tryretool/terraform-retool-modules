@@ -701,4 +701,5 @@ module "temporal" {
   aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
   task_propagate_tags                          = var.task_propagate_tags
   service_discovery_namespace                  = local.service_discovery_namespace
+  iam_partition                                = var.iam_partition
 }
