@@ -278,7 +278,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
               value = "JOBS_RUNNER"
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -328,7 +329,8 @@ resource "aws_ecs_task_definition" "retool" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -379,7 +381,8 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -434,7 +437,8 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -580,7 +584,8 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
               value = base64encode(file(var.telemetry_custom_config_path))
             }
           ] : []
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   )
