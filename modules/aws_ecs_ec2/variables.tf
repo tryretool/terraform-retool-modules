@@ -145,6 +145,12 @@ variable "cookie_insecure" {
   description = "Whether to allow insecure cookies. Should be turned off when serving on HTTPS. Defaults to true."
 }
 
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether to create an internal load balancer. Defaults to false."
+}
+
 variable "maximum_percent" {
   type        = number
   default     = 250

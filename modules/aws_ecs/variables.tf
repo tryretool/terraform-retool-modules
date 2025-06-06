@@ -433,6 +433,12 @@ variable "alb_http_redirect" {
   description = "Boolean for if http should redirect to https"
 }
 
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether to create an internal load balancer. Defaults to false."
+}
+
 variable "cookie_insecure" {
   type        = bool
   default     = true
