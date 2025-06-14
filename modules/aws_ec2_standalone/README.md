@@ -116,4 +116,4 @@ egress_rules = [
 ]
 ```
 
-By default, this module creates a publicly-accessible security group that enables inbound traffic on ports (`30`, `443`, `22`, and `3000`) and all outbound traffic.
+By default, this module creates a publicly accessible security group that enables inbound traffic on ports (`80`, `443`, `22`, and `3000`) and all outbound traffic.
