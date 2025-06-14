@@ -16,10 +16,28 @@ variable "instance_name" {
   description = "EC2 instance name. Defaults to `retool`."
 }
 
+variable "backend_image_name" {
+  type        = string
+  default     = "tryretool/backend"
+  description = "Docker Hub image name for the main backend image"
+}
+
+variable "code_executor_image_name" {
+  type        = string
+  default     = "tryretool/code-executor-service"
+  description = "Docker Hub image name for the code executor image"
+}
+
 variable "version_number" {
   type        = string
   default     = "2.106.2"
   description = "Retool version number. Defaults to `2.106.2`."
+}
+
+variable "code_executor_version_number" {
+  type        = string
+  default     = "2.106.2"
+  description = "Retool code executor version number. Defaults to `2.106.2`."
 }
 
 variable "vpc_id" {
@@ -148,3 +166,8 @@ variable "egress_rules" {
   description = "Egress rules for EC2 security group"
 }
 
+variable "attach_eip" {
+  type        = bool
+  default     = true
+  description = "Whether to attach an Elastic IP to the EC2 instance."
+}

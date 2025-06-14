@@ -9,6 +9,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+  alias = "provider-aws-ec2-standalone"
 }
 
 data "aws_ami" "this" {
@@ -93,8 +94,12 @@ resource "aws_instance" "this" {
   cd retool-onpremise
 
   # Rewrite Dockerfile
-  echo FROM tryretool/backend:${var.version_number} > Dockerfile
+  echo FROM ${var.backend_image_name}:${var.version_number} > Dockerfile
   echo CMD ./docker_scripts/start_api.sh >> Dockerfile
+
+  # Rewrite CodeExecutor.Dockerfile 
+  echo FROM ${var.code_executor_image_name}:${var.version_number} > CodeExecutor.Dockerfile 
+  echo CMD bash start.sh >> CodeExecutor.Dockerfile 
 
   # Initialize Docker and Retool Installation
   ./install.sh
@@ -102,4 +107,10 @@ resource "aws_instance" "this" {
   # Run services
   docker-compose up -d
   EOF
+}
+
+resource "aws_eip" "ec2_attached_elastic_ip" {
+  count    = var.attach_eip ? 1 : 0
+  instance = aws_instance.this.id
+  vpc      = true
 }
