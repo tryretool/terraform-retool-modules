@@ -74,6 +74,12 @@ variable "launch_type" {
   }
 }
 
+variable "assign_public_ip" {
+  type        = bool
+  description = "Whether to assign a public IP address to Temporal Fargate tasks. Defaults to false."
+  default     = true
+}
+
 variable "temporal_aurora_username" {
   type        = string
   default     = "retool"
