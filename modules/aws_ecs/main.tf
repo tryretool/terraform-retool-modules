@@ -702,4 +702,5 @@ module "temporal" {
   task_propagate_tags                          = var.task_propagate_tags
   service_discovery_namespace                  = local.service_discovery_namespace
   assign_public_ip                             = var.assign_public_ip
+  iam_partition                                = var.iam_partition
 }

@@ -614,3 +614,9 @@ variable "alb_egress_rules" {
   ]
   description = "Egress rules for load balancer"
 }
+
+variable "iam_partition" {
+  type        = string
+  description = "AWS Commercial accounts use 'aws'. AWS GovCloud accounts use 'aws-us-gov'"
+  default     = "aws"
+}
