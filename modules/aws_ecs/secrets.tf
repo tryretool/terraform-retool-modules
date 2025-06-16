@@ -57,3 +57,40 @@ resource "aws_secretsmanager_secret_version" "encryption_key" {
   secret_id     = aws_secretsmanager_secret.encryption_key.id
   secret_string = random_string.encryption_key.result
 }
+
+resource "aws_secretsmanager_secret" "retool_license_key" {
+  count                   = var.retool_license_key != "" ? 1 : 0
+  name                    = "${var.deployment_name}-retool-license-key"
+  description             = "This is the Retool license key"
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "retool_license_key" {
+  count         = var.retool_license_key != "" ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.retool_license_key[0].id
+  secret_string = var.retool_license_key
+}
+
+resource "aws_secretsmanager_secret" "temporal_tls_crt" {
+  count       = var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null ? 1 : 0
+  name        = "${var.deployment_name}-temporal-tls-crt"
+  description = "Temporal client certificate"
+}
+
+resource "aws_secretsmanager_secret_version" "temporal_tls_crt" {
+  count         = var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.temporal_tls_crt[0].id
+  secret_string = var.temporal_cluster_config.tls_crt
+}
+
+resource "aws_secretsmanager_secret" "temporal_tls_key" {
+  count       = var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_key != null ? 1 : 0
+  name        = "${var.deployment_name}-temporal-tls-key"
+  description = "Temporal client key"
+}
+
+resource "aws_secretsmanager_secret_version" "temporal_tls_key" {
+  count         = var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_key != null ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.temporal_tls_key[0].id
+  secret_string = var.temporal_cluster_config.tls_key
+}
