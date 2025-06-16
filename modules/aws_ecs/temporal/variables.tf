@@ -74,6 +74,12 @@ variable "launch_type" {
   }
 }
 
+variable "assign_public_ip" {
+  type        = bool
+  description = "Whether to assign a public IP address to Temporal Fargate tasks. Defaults to false."
+  default     = true
+}
+
 variable "temporal_aurora_username" {
   type        = string
   default     = "retool"
@@ -209,4 +215,10 @@ variable "task_propagate_tags" {
 variable "service_discovery_namespace" {
   type        = string
   description = "Service discovery namespace DNS name for Retool ECS cluster."
+}
+
+variable "iam_partition" {
+  type        = string
+  description = "AWS Commercial accounts use 'aws'. AWS GovCloud accounts use 'aws-us-gov'"
+  default     = "aws"
 }

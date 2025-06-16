@@ -73,7 +73,7 @@ resource "aws_iam_role" "execution_role" {
 resource "aws_iam_role_policy_attachment" "execution_role" {
   count      = var.launch_type == "FARGATE" ? 1 : 0
   role       = aws_iam_role.execution_role[0].name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = "arn:${var.iam_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 data "aws_iam_policy_document" "secrets_manager_access" {
@@ -90,8 +90,7 @@ data "aws_iam_policy_document" "secrets_manager_access" {
 }
 
 resource "aws_iam_policy" "secrets_manager_access" {
-  count = var.launch_type == "FARGATE" ? 1 : 0
-
+  count  = var.launch_type == "FARGATE" ? 1 : 0
   name   = "${var.deployment_name}-secrets-manager-access"
   path   = "/"
   policy = data.aws_iam_policy_document.secrets_manager_access[0].json
