@@ -123,7 +123,7 @@ locals {
         auto_create_group = "true"
         log_stream_prefix = "SERVICE_RETOOL/"
       }
-    } : {
+      } : {
       logDriver = "awslogs"
       options = {
         awslogs-group         = aws_cloudwatch_log_group.this.id
@@ -143,7 +143,7 @@ locals {
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["memory"] : null
 
         firelensConfiguration = {
-          type    = "fluentbit"
+          type = "fluentbit"
           options = {
             config-file-type  = "file"
             config-file-value = "/extra.conf"
@@ -152,7 +152,7 @@ locals {
 
         logConfiguration = {
           logDriver = "awslogs"
-          options   = {
+          options = {
             awslogs-group         = aws_cloudwatch_log_group.this.id
             awslogs-region        = var.aws_region
             awslogs-stream-prefix = "SERVICE_RETOOL"
