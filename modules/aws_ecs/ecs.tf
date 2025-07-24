@@ -37,28 +37,29 @@ data "aws_ami" "this" {
   ]
 }
 
-resource "aws_launch_configuration" "this" {
+resource "aws_launch_template" "this" {
   count         = var.launch_type == "EC2" ? 1 : 0
-  name_prefix   = "${var.deployment_name}-ecs-launch-configuration-"
+  name_prefix   = "${var.deployment_name}-ecs-launch-template-"
   image_id      = data.aws_ami.this.id
   instance_type = var.instance_type # e.g. t2.medium
 
-  enable_monitoring           = true
-  associate_public_ip_address = true
+  monitoring {
+    enabled = true
+  }
+
+  network_interfaces {
+    associate_public_ip_address = false
+    security_groups             = [aws_security_group.containers.id]
+  }
 
   # This user data represents a collection of “scripts” that will be executed the first time the machine starts.
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier
   # and marks the instance as purchased through the Spot pricing
-  user_data = <<-EOF
-  #!/bin/bash
-  echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
-  EOF
-
-  # We’ll see security groups later
-  security_groups = [
-    aws_security_group.containers.id
-  ]
-
+  user_data = base64encod(<<-EOF
+    #!/bin/bash
+    echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
+    EOF
+  )
   # If you want to SSH into the instance and manage it directly:
   # 1. Make sure this key exists in the AWS EC2 dashboard
   # 2. Make sure your local SSH agent has it loaded
@@ -80,10 +81,15 @@ resource "aws_autoscaling_group" "this" {
   min_size             = var.min_instance_count
   desired_capacity     = var.min_instance_count
   vpc_zone_identifier  = var.private_subnet_ids
-  launch_configuration = aws_launch_configuration.this[0].name
+  
+  launch_template {
+    id      = aws_launch_template.this[0].id
+    version = "$Latest"
+  }
 
   default_cooldown          = 30
   health_check_grace_period = 30
+  health_check_type = "EC2"
 
   termination_policies = [
     "OldestInstance"
