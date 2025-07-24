@@ -54,7 +54,6 @@ resource "aws_ecs_service" "retool" {
   desired_count                      = var.min_instance_count - 1
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
-  iam_role                           = var.launch_type == "EC2" ? aws_iam_role.service_role.arn : null
   propagate_tags                     = var.task_propagate_tags
   enable_execute_command             = var.enable_execute_command
 
@@ -71,16 +70,10 @@ resource "aws_ecs_service" "retool" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -99,16 +92,10 @@ resource "aws_ecs_service" "jobs_runner" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -132,16 +119,10 @@ resource "aws_ecs_service" "workflows_backend" {
     registry_arn = aws_service_discovery_service.retool_workflow_backend_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -161,16 +142,10 @@ resource "aws_ecs_service" "workflows_worker" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -193,16 +168,10 @@ resource "aws_ecs_service" "code_executor" {
     registry_arn = aws_service_discovery_service.retool_code_executor_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -226,16 +195,10 @@ resource "aws_ecs_service" "telemetry" {
     registry_arn = aws_service_discovery_service.retool_telemetry_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -243,8 +206,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family                   = "retool-jobs-runner"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
   container_definitions = jsonencode(concat(
@@ -288,8 +251,8 @@ resource "aws_ecs_task_definition" "retool" {
   family                   = "retool"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
 
@@ -339,8 +302,8 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   family                   = "retool-workflows-backend"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
 
@@ -390,8 +353,8 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   family                   = "retool-workflows-worker"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
 
@@ -445,8 +408,8 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
   family                   = "retool-code-executor"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
 
@@ -508,8 +471,8 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
   family                   = "retool-telemetry"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["telemetry"]["cpu"] : null
   memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["telemetry"]["memory"] : null
 
