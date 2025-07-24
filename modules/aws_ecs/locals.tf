@@ -26,13 +26,6 @@ locals {
   environment_variables = concat(
     var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
-    local.temporal_mtls_config,
-    var.code_executor_enabled ? [
-      {
-        name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
-        value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
-      }
-    ] : [],
     var.telemetry_enabled ? [
       {
         name  = "RTEL_ENABLED"
@@ -88,11 +81,22 @@ locals {
         "name" : "LICENSE_KEY",
         "value" : var.retool_license_key
       },
-      # Workflows-specific
+    # WORKFLOW_BACKEND_HOST and CODE_EXECUTOR_INGRESS_DOMAIN are workflows-specific services
       {
         "name" : "WORKFLOW_BACKEND_HOST",
         "value" : format("http://workflow-backend.%s:3000", local.service_discovery_namespace)
-      },
+      }
+    ],
+        var.code_executor_enabled ? [
+      {
+        name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
+        value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
+      }
+    ] : [],
+    # The section below is only needed if deploying Temporal locally from this template. 
+    # Retool strongly reccommends using the Retool Managed Temporal option instead.
+    local.temporal_mtls_config, 
+    var.use_existing_temporal_cluster ? [] : [
       {
         "name" : "WORKFLOW_TEMPORAL_CLUSTER_NAMESPACE",
         "value" : var.temporal_cluster_config.namespace
