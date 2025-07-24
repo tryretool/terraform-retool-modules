@@ -514,6 +514,12 @@ variable "additional_env_vars" {
   description = "Additional environment variables (e.g. BASE_DOMAIN)"
 }
 
+variable "additional_secrets" {
+  type        = list(map(string))
+  default     = []
+  description = "Optional additional environment variables set from pre-existing AWS Secrets Manager Secrets."
+}
+
 variable "additional_temporal_env_vars" {
   type        = list(map(string))
   default     = []

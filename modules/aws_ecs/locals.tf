@@ -66,18 +66,6 @@ locals {
         "value" = var.rds_username
       },
       {
-        "name"  = "POSTGRES_PASSWORD",
-        "value" = random_string.rds_password.result
-      },
-      {
-        "name" : "JWT_SECRET",
-        "value" : random_string.jwt_secret.result
-      },
-      {
-        "name" : "ENCRYPTION_KEY",
-        "value" : random_string.encryption_key.result
-      },
-      {
         "name" : "LICENSE_KEY",
         "value" : var.retool_license_key
       },
@@ -112,6 +100,24 @@ locals {
       {
         "name" : "WORKFLOW_TEMPORAL_TLS_ENABLED",
         "value" : tostring(var.temporal_cluster_config.tls_enabled)
+      }
+    ]
+  )
+
+  secrets = concat(
+    var.additional_secrets,
+    [
+      {
+        name = "POSTGRES_PASSWORD",
+        valueFrom = aws_secretsmanager_secret.rds_password.arn
+      },
+      {
+        name      = "JWT_SECRET",
+        valueFrom = aws_secretsmanager_secret.jwt_secret.arn
+      },
+      {
+        name    = "ENCRYPTION_KEY",
+        valueFrom   = aws_secretsmanager_secret.encryption_key.arn
       }
     ]
   )

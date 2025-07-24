@@ -69,7 +69,6 @@ resource "aws_iam_role" "service_role" {
   }
 }
 
-# Execution Role for Fargate
 data "aws_iam_policy_document" "execution_role_assume_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -82,15 +81,40 @@ data "aws_iam_policy_document" "execution_role_assume_policy" {
 }
 
 resource "aws_iam_role" "execution_role" {
-  count              = var.launch_type == "FARGATE" ? 1 : 0
   name               = "${var.deployment_name}-execution-role"
   assume_role_policy = data.aws_iam_policy_document.execution_role_assume_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "execution_role" {
-  count      = var.launch_type == "FARGATE" ? 1 : 0
   role       = aws_iam_role.execution_role[0].name
   policy_arn = "arn:${var.iam_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+data "aws_iam_policy_document" "execution_role_read_secrets" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [
+      aws_secretsmanager_secret.rds_password.arn,
+      aws_secretsmanager_secret.encryption_key.arn,
+      aws_secretsmanager_secret.jwt_secret.arn
+    ]
+  }
+}
+
+resource aws_iam_policy "execution_role_read_secrets" {
+  name        = "ExecutionRoleReadSecrets"
+  description = "Allows ECS or EC2 instance execution to read secrets block values from AWS Secret Manager"
+  policy      = data.aws_iam_policy_document.execution_role_read_secrets.json
+}
+
+resource "aws_iam_role_policy_attachment" "execution_role_read_secrets" {
+  role       = aws_iam_role.execution_role[0].name
+  policy_arn = aws_iam_policy.execution_role_read_secrets.arn
 }
 
 # IAM Role for EC2 instances

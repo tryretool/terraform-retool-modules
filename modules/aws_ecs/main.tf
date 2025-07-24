@@ -211,7 +211,7 @@ resource "aws_ecs_service" "telemetry" {
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family                   = "retool-jobs-runner"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["jobs_runner"]["cpu"] : null
@@ -249,6 +249,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -257,7 +259,7 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
 resource "aws_ecs_task_definition" "retool" {
   family                   = "retool"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["main"]["cpu"] : null
@@ -300,6 +302,8 @@ resource "aws_ecs_task_definition" "retool" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -309,7 +313,7 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-backend"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["workflows_backend"]["cpu"] : null
@@ -352,6 +356,8 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -361,7 +367,7 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-worker"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["code_executor"]["cpu"] : null
@@ -408,6 +414,8 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -417,7 +425,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
   count                    = var.code_executor_enabled ? 1 : 0
   family                   = "retool-code-executor"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null
@@ -472,6 +480,8 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
             }
           ] : []
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -481,7 +491,7 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
   count                    = var.telemetry_enabled ? 1 : 0
   family                   = "retool-telemetry"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  execution_role_arn       = aws_iam_role.execution_role[0].arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null
