@@ -45,7 +45,7 @@ variable "max_instance_count" {
 
 variable "min_instance_count" {
   type        = number
-  description = "Min/desired number of EC2 instances. Defaults to 4."
+  description = "Min/desired number of EC2 instances. Defaults to 3."
   default     = 3
 }
 
@@ -97,7 +97,58 @@ variable "ecs_telemetry_fluentbit_image" {
   default     = "tryretool/retool-aws-for-fluent-bit:3.120.0-edge"
 }
 
-variable "ecs_task_resource_map" {
+# ECS treats CPU and Memory differently between EC2 and Fargate launch types. 
+# Retool provides separate sane defaults for both launch types and the template will use the resource map for the configured launch type. 
+# With Fargate, ECS treats CPU and Memory as exact requests, but with EC2, ECS treats CPU as a soft limit, 
+# memory as a hard limit and supports the additional memoryReservation as a soft limit. 
+
+variable "ec2_task_resource_map" {
+  type = map(object({
+    cpu               = number
+    memory            = number
+    memoryReservation = number
+  }))
+  default = {
+    main = {
+      cpu               = 2048
+      memory            = 4096
+      memoryReservation = 3072
+    },
+    jobs_runner = {
+      cpu               = 1024
+      memory            = 4096
+      memoryReservation = 2048
+    },
+    workflows_backend = {
+      cpu               = 2048
+      memory            = 4096
+      memoryReservation = 3072
+    }
+    workflows_worker = {
+      cpu               = 1024
+      memory            = 4096
+      memoryReservation = 2048
+    }
+    code_executor = {
+      cpu               = 1024
+      memory            = 4096
+      memoryReservation = 2048
+    }
+    telemetry = {
+      cpu               = 1024
+      memory            = 4096
+      memoryReservation = 2048
+    }
+    fluentbit = {
+      cpu               = 512
+      memory            = 2048
+      memoryReservation = 1024
+    }
+  }
+  description = "Amount of CPU and Memory provisioned for each task with EC2 launch type set."
+}
+
+variable "fargate_task_resource_map" {
   type = map(object({
     cpu    = number
     memory = number
@@ -108,8 +159,8 @@ variable "ecs_task_resource_map" {
       memory = 4096
     },
     jobs_runner = {
-      cpu    = 1024
-      memory = 2048
+      cpu    = 2048
+      memory = 4096
     },
     workflows_backend = {
       cpu    = 2048
@@ -132,7 +183,7 @@ variable "ecs_task_resource_map" {
       memory = 1024
     }
   }
-  description = "Amount of CPU and Memory provisioned for each task."
+  description = "Amount of CPU and Memory provisioned for each task with Fargate launch type."
 }
 
 variable "temporal_ecs_task_resource_map" {
@@ -449,6 +500,12 @@ variable "autoscaling_memory_reservation_target" {
   type        = number
   default     = 70.0
   description = "Memory reservation target for the Autoscaling Group. Defaults to 70.0."
+}
+
+variable "autoscaling_cpu_reservation_target" {
+  type        = number
+  default     = 60.0
+  description = "Memory reservation target for the Autoscaling Group. Defaults to 60.0."
 }
 
 variable "additional_env_vars" {

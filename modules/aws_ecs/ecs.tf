@@ -118,28 +118,6 @@ resource "aws_autoscaling_group" "this" {
   }
 }
 
-# Attach an autoscaling policy to the spot cluster to target 70% MemoryReservation on the ECS cluster.
-resource "aws_autoscaling_policy" "this" {
-  count                  = var.launch_type == "EC2" ? 1 : 0
-  name                   = "${var.deployment_name}-ecs-scale-policy"
-  policy_type            = "TargetTrackingScaling"
-  adjustment_type        = "ChangeInCapacity"
-  autoscaling_group_name = aws_autoscaling_group.this[0].name
-
-  target_tracking_configuration {
-    customized_metric_specification {
-      metric_dimension {
-        name  = "ClusterName"
-        value = "${var.deployment_name}-ecs"
-      }
-      metric_name = "MemoryReservation"
-      namespace   = "AWS/ECS"
-      statistic   = "Average"
-    }
-    target_value = var.autoscaling_memory_reservation_target
-  }
-}
-
 resource "aws_ecs_capacity_provider" "this" {
   count = var.launch_type == "EC2" ? 1 : 0
   name  = "${var.deployment_name}-ecs-capacity-provider"
@@ -147,4 +125,218 @@ resource "aws_ecs_capacity_provider" "this" {
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.this[0].arn
   }
+
+  managed_scaling {
+    status                    = "ENABLED"
+    target_capacity           = 80
+    minimum_scaling_step_size = 1
+    maximum_scaling_step_size = 2
+    instance_warmup_period    = 300
+  }
 }
+
+resource "aws_appautoscaling_target" "retool" {
+  count = var.launch_type == "EC2" ? 1 : 0
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-main-backend-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = 1
+  max_capacity       = 3
+  depends_on = [aws_ecs_service.retool]
+}
+
+resource "aws_appautoscaling_target" "workflows_worker" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-workflows-worker-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = 1
+  max_capacity       = 3
+  depends_on = [aws_ecs_service.workflows_worker]
+}
+
+resource "aws_appautoscaling_target" "workflows_backend" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-workflows-backend-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = 1
+  max_capacity       = 3
+  depends_on = [aws_ecs_service.workflows_backend]
+}
+
+resource "aws_appautoscaling_target" "code_executor" {
+  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  service_namespace  = "ecs"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-code-executor-service"
+  scalable_dimension = "ecs:service:DesiredCount"
+  min_capacity       = 1
+  max_capacity       = 3
+  depends_on = [aws_ecs_service.code_executor]
+}
+
+resource "aws_appautoscaling_policy" "retool_cpu" {
+  count = var.launch_type == "EC2" ? 1 : 0
+  name               = "retool-cpu-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.retool[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.retool[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 60.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "workflows_worker_cpu" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  name               = "workflows-worker-cpu-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.workflows_worker[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.workflows_worker[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 60.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 30
+  }
+}
+
+resource "aws_appautoscaling_policy" "workflows_backend_cpu" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  name               = "workflows_backend-cpu-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.workflows_backend[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.workflows_backend[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 60.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "code_executor_cpu" {
+  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  name               = "code-executor-cpu-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.code_executor[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.code_executor[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 60.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "retool_memory" {
+  count = var.launch_type == "EC2" ? 1 : 0
+  name               = "retool-memory-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.retool[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.retool[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "workflows_worker_memory" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  name               = "workflows-worker-memory-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.workflows_worker[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.workflows_worker[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "workflows_backend_memory" {
+  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  name               = "workflows_backend-memory-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.workflows_backend[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.workflows_backend[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "code_executor_memory" {
+  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  name               = "code-executor-memory-policy"
+  service_namespace  = "ecs"
+  resource_id        = aws_appautoscaling_target.code_executor[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.code_executor[0].scalable_dimension
+  policy_type        = "TargetTrackingScaling"
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70.0
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    scale_in_cooldown  = 60
+    scale_out_cooldown = 60
+  }
+}
+
+# Attach an autoscaling policy to the spot cluster to target 70% MemoryReservation on the ECS cluster.
+# resource "aws_autoscaling_policy" "this" {
+#   count                  = var.launch_type == "EC2" ? 1 : 0
+#   name                   = "${var.deployment_name}-ecs-scale-policy"
+#   policy_type            = "TargetTrackingScaling"
+#   adjustment_type        = "ChangeInCapacity"
+#   autoscaling_group_name = aws_autoscaling_group.this[0].name
+# 
+#   target_tracking_configuration {
+#     customized_metric_specification {
+#       metric_dimension {
+#         name  = "ClusterName"
+#         value = "${var.deployment_name}-ecs"
+#       }
+#       metric_name = "MemoryReservation"
+#       namespace   = "AWS/ECS"
+#       statistic   = "Average"
+#     }
+#     target_value = var.autoscaling_memory_reservation_target
+#   }
+# }

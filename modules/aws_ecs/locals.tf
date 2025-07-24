@@ -136,11 +136,12 @@ locals {
   common_containers = (
     var.telemetry_enabled ? [
       {
-        name      = "retool-fluentbit"
-        essential = true
-        image     = var.ecs_telemetry_fluentbit_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["memory"] : null
+        name                 = "retool-fluentbit"
+        essential            = true
+        image                = var.ecs_telemetry_fluentbit_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["memory"] : null
 
         firelensConfiguration = {
           type    = "fluentbit"
