@@ -86,7 +86,7 @@ resource "aws_iam_role" "execution_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "execution_role" {
-  role       = aws_iam_role.execution_role[0].name
+  role       = aws_iam_role.execution_role.name
   policy_arn = "arn:${var.iam_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
@@ -113,7 +113,7 @@ resource aws_iam_policy "execution_role_read_secrets" {
 }
 
 resource "aws_iam_role_policy_attachment" "execution_role_read_secrets" {
-  role       = aws_iam_role.execution_role[0].name
+  role       = aws_iam_role.execution_role.name
   policy_arn = aws_iam_policy.execution_role_read_secrets.arn
 }
 

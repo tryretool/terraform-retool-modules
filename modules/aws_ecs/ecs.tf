@@ -55,7 +55,7 @@ resource "aws_launch_template" "this" {
   # This user data represents a collection of “scripts” that will be executed the first time the machine starts.
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier
   # and marks the instance as purchased through the Spot pricing
-  user_data = base64encod(<<-EOF
+  user_data = base64encode(<<-EOF
     #!/bin/bash
     echo ECS_CLUSTER=${var.deployment_name}-ecs >> /etc/ecs/ecs.config
     EOF
@@ -67,7 +67,9 @@ resource "aws_launch_template" "this" {
   key_name = var.ssh_key_name
 
   # Allow the EC2 instances to access AWS resources on your behalf, using this instance profile and the permissions defined there
-  iam_instance_profile = aws_iam_instance_profile.ec2[0].arn
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2[0].name
+  }
 
   lifecycle {
     create_before_destroy = true
@@ -124,21 +126,20 @@ resource "aws_ecs_capacity_provider" "this" {
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.this[0].arn
-  }
-
-  managed_scaling {
-    status                    = "ENABLED"
-    target_capacity           = 80
-    minimum_scaling_step_size = 1
-    maximum_scaling_step_size = 2
-    instance_warmup_period    = 300
+    managed_scaling {
+      status                    = "ENABLED"
+      target_capacity           = 80
+      minimum_scaling_step_size = 1
+      maximum_scaling_step_size = 2
+      instance_warmup_period    = 300
+    }
   }
 }
 
 resource "aws_appautoscaling_target" "retool" {
-  count = var.launch_type == "EC2" ? 1 : 0
+  count = 1
   service_namespace  = "ecs"
-  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-main-backend-service"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-main-service"
   scalable_dimension = "ecs:service:DesiredCount"
   min_capacity       = 1
   max_capacity       = 3
@@ -146,7 +147,7 @@ resource "aws_appautoscaling_target" "retool" {
 }
 
 resource "aws_appautoscaling_target" "workflows_worker" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-workflows-worker-service"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -156,7 +157,7 @@ resource "aws_appautoscaling_target" "workflows_worker" {
 }
 
 resource "aws_appautoscaling_target" "workflows_backend" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-workflows-backend-service"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -166,7 +167,7 @@ resource "aws_appautoscaling_target" "workflows_backend" {
 }
 
 resource "aws_appautoscaling_target" "code_executor" {
-  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  count = var.code_executor_enabled ? 1 : 0
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.this.name}/${var.deployment_name}-code-executor-service"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -176,7 +177,7 @@ resource "aws_appautoscaling_target" "code_executor" {
 }
 
 resource "aws_appautoscaling_policy" "retool_cpu" {
-  count = var.launch_type == "EC2" ? 1 : 0
+  count = 1
   name               = "retool-cpu-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.retool[0].resource_id
@@ -194,7 +195,7 @@ resource "aws_appautoscaling_policy" "retool_cpu" {
 }
 
 resource "aws_appautoscaling_policy" "workflows_worker_cpu" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   name               = "workflows-worker-cpu-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.workflows_worker[0].resource_id
@@ -212,7 +213,7 @@ resource "aws_appautoscaling_policy" "workflows_worker_cpu" {
 }
 
 resource "aws_appautoscaling_policy" "workflows_backend_cpu" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   name               = "workflows_backend-cpu-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.workflows_backend[0].resource_id
@@ -230,7 +231,7 @@ resource "aws_appautoscaling_policy" "workflows_backend_cpu" {
 }
 
 resource "aws_appautoscaling_policy" "code_executor_cpu" {
-  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  count = var.code_executor_enabled ? 1 : 0
   name               = "code-executor-cpu-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.code_executor[0].resource_id
@@ -248,7 +249,7 @@ resource "aws_appautoscaling_policy" "code_executor_cpu" {
 }
 
 resource "aws_appautoscaling_policy" "retool_memory" {
-  count = var.launch_type == "EC2" ? 1 : 0
+  count = 1
   name               = "retool-memory-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.retool[0].resource_id
@@ -266,7 +267,7 @@ resource "aws_appautoscaling_policy" "retool_memory" {
 }
 
 resource "aws_appautoscaling_policy" "workflows_worker_memory" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   name               = "workflows-worker-memory-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.workflows_worker[0].resource_id
@@ -284,7 +285,7 @@ resource "aws_appautoscaling_policy" "workflows_worker_memory" {
 }
 
 resource "aws_appautoscaling_policy" "workflows_backend_memory" {
-  count = (var.launch_type == "EC2" && var.workflows_enabled) ? 1 : 0
+  count = var.workflows_enabled ? 1 : 0
   name               = "workflows_backend-memory-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.workflows_backend[0].resource_id
@@ -302,7 +303,7 @@ resource "aws_appautoscaling_policy" "workflows_backend_memory" {
 }
 
 resource "aws_appautoscaling_policy" "code_executor_memory" {
-  count = (var.launch_type == "EC2" && var.code_executor_enabled) ? 1 : 0
+  count = var.code_executor_enabled ? 1 : 0
   name               = "code-executor-memory-policy"
   service_namespace  = "ecs"
   resource_id        = aws_appautoscaling_target.code_executor[0].resource_id

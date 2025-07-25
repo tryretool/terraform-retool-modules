@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+provider "aws" {
+  profile = var.profile
+  region  = var.aws_region
+}
+
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
@@ -51,7 +56,6 @@ resource "aws_ecs_service" "retool" {
   name                               = "${var.deployment_name}-main-service"
   cluster                            = aws_ecs_cluster.this.id
   task_definition                    = aws_ecs_task_definition.retool.arn
-  desired_count                      = var.min_instance_count - 1
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
   propagate_tags                     = var.task_propagate_tags
@@ -78,13 +82,13 @@ resource "aws_ecs_service" "retool" {
 }
 
 resource "aws_ecs_service" "jobs_runner" {
-  name                   = "${var.deployment_name}-jobs-runner-service"
-  cluster                = aws_ecs_cluster.this.id
+  name                               = "${var.deployment_name}-jobs-runner-service"
+  cluster                            = aws_ecs_cluster.this.id
   # desired_count is set to 1 since the Jobs Runner must be run as a singleton.
-  desired_count          = 1
-  task_definition        = aws_ecs_task_definition.retool_jobs_runner.arn
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  desired_count                      = 1
+  task_definition                    = aws_ecs_task_definition.retool_jobs_runner.arn
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
   deployment_minimum_healthy_percent = 0
   deployment_maximum_percent         = 100
 
@@ -103,12 +107,12 @@ resource "aws_ecs_service" "jobs_runner" {
 }
 
 resource "aws_ecs_service" "workflows_backend" {
-  count                  = var.workflows_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-workflows-backend-service"
-  cluster                = aws_ecs_cluster.this.id
-  task_definition        = aws_ecs_task_definition.retool_workflows_backend[0].arn
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  count                              = var.workflows_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-workflows-backend-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_workflows_backend[0].arn
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
 
@@ -131,14 +135,14 @@ resource "aws_ecs_service" "workflows_backend" {
 }
 
 resource "aws_ecs_service" "workflows_worker" {
-  count                  = var.workflows_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-workflows-worker-service"
-  cluster                = aws_ecs_cluster.this.id
-  task_definition        = aws_ecs_task_definition.retool_workflows_worker[0].arn
+  count                              = var.workflows_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-workflows-worker-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_workflows_worker[0].arn
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -155,11 +159,11 @@ resource "aws_ecs_service" "workflows_worker" {
 }
 
 resource "aws_ecs_service" "code_executor" {
-  count                  = var.code_executor_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-code-executor-service"
-  cluster                = aws_ecs_cluster.this.id
-  task_definition        = aws_ecs_task_definition.retool_code_executor[0].arn
-  enable_execute_command = var.enable_execute_command
+  count                              = var.code_executor_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-code-executor-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_code_executor[0].arn
+  enable_execute_command             = var.enable_execute_command
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
 
@@ -211,7 +215,7 @@ resource "aws_ecs_service" "telemetry" {
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family                   = "retool-jobs-runner"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["jobs_runner"]["cpu"] : null
@@ -259,7 +263,7 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
 resource "aws_ecs_task_definition" "retool" {
   family                   = "retool"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["main"]["cpu"] : null
@@ -313,7 +317,7 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-backend"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["workflows_backend"]["cpu"] : null
@@ -367,7 +371,7 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-worker"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["code_executor"]["cpu"] : null
@@ -425,7 +429,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
   count                    = var.code_executor_enabled ? 1 : 0
   family                   = "retool-code-executor"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null
@@ -491,7 +495,7 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
   count                    = var.telemetry_enabled ? 1 : 0
   family                   = "retool-telemetry"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = aws_iam_role.execution_role[0].arn
+  execution_role_arn       = aws_iam_role.execution_role.arn
   requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
   network_mode             = "awsvpc"
   cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null

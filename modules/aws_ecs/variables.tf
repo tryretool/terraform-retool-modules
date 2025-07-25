@@ -4,6 +4,11 @@ variable "aws_region" {
   description = "AWS region. Defaults to `us-east-1`"
 }
 
+variable "profile" {
+  type = string
+  description = "Optional AWS CLI Profile."
+}
+
 variable "node_env" {
   type        = string
   default     = "production"
@@ -112,7 +117,7 @@ variable "ec2_task_resource_map" {
     main = {
       cpu               = 2048
       memory            = 4096
-      memoryReservation = 3072
+      memoryReservation = 4096
     },
     jobs_runner = {
       cpu               = 1024
@@ -122,7 +127,7 @@ variable "ec2_task_resource_map" {
     workflows_backend = {
       cpu               = 2048
       memory            = 4096
-      memoryReservation = 3072
+      memoryReservation = 4096
     }
     workflows_worker = {
       cpu               = 1024
