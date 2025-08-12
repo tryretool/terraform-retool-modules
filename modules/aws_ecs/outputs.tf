@@ -8,6 +8,16 @@ output "ecs_alb_arn" {
   description = "Retool ALB arn"
 }
 
+output "ecs_alb_security_group_arn" {
+  value       = aws_security_group.alb.arn
+  description = "Security Group arn for Retool ALB"
+}
+
+output "ecs_alb_security_group_id" {
+  value       = aws_security_group.alb.id
+  description = "Security Group ID for Retool ALB"
+}
+
 output "ecs_cluster_name" {
   value       = aws_ecs_cluster.this.name
   description = "Name of AWS ECS Cluster"
@@ -21,6 +31,16 @@ output "ecs_cluster_arn" {
 output "ecs_cluster_id" {
   value       = aws_ecs_cluster.this.id
   description = "ID of AWS ECS Cluster"
+}
+
+output "ecs_containers_security_group_arn" {
+  value       = aws_security_group.containers.arn
+  description = "Security Group arn for Retool containers"
+}
+
+output "ecs_containers_security_group_id" {
+  value       = aws_security_group.containers.id
+  description = "Security Group ID for Retool containers"
 }
 
 output "rds_instance_id" {
@@ -41,6 +61,16 @@ output "rds_instance_arn" {
 output "rds_instance_name" {
   value       = aws_db_instance.this.db_name
   description = "Name of RDS instance"
+}
+
+output "rds_security_group_arn" {
+  value       = aws_security_group.rds.arn
+  description = "Security Group arn for RDS instance"
+}
+
+output "rds_security_group_id" {
+  value       = aws_security_group.rds.id
+  description = "Security Group ID for RDS instance"
 }
 
 output "target_group_arn" {
