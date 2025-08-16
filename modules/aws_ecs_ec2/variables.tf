@@ -121,6 +121,18 @@ variable "rds_multi_az" {
   description = "Whether the RDS instance should have Multi-AZ enabled. Defaults to false."
 }
 
+variable "rds_backup_retention_period" {
+  type        = number
+  default     = null
+  description = "The number of days to retain backups for. Must be between 0 and 35."
+}
+
+variable "rds_backup_window" {
+  type        = string
+  default     = null
+  description = "The daily time range (in UTC) during which automated backups are created if automated backups are enabled."
+}
+
 variable "log_retention_in_days" {
   type        = number
   default     = 14
