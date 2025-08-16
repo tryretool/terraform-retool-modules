@@ -49,6 +49,18 @@ variable "min_instance_count" {
   default     = 3
 }
 
+variable "associate_public_ip_address" {
+  type        = bool
+  description = "Whether to associate a public IP address with an EC2 instance in a VPC. Defaults to true."
+  default     = true
+}
+
+variable "assign_public_ip" {
+  type        = bool
+  description = "Whether to assign a public IP address to Fargate tasks. Defaults to false."
+  default     = true
+}
+
 variable "deployment_name" {
   type        = string
   description = "Name prefix for created resources. Defaults to `retool`."
@@ -419,6 +431,12 @@ variable "alb_http_redirect" {
   type        = bool
   default     = false
   description = "Boolean for if http should redirect to https"
+}
+
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether to create an internal load balancer. Defaults to false."
 }
 
 variable "cookie_insecure" {

@@ -93,7 +93,7 @@ resource "aws_ecs_service" "retool_temporal" {
       security_groups = [
         var.container_sg_id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
