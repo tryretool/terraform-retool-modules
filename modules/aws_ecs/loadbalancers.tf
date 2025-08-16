@@ -58,7 +58,7 @@ resource "aws_lb_target_group" "this" {
   deregistration_delay = 30
   port                 = 3000
   protocol             = "HTTP"
-  target_type          = var.launch_type == "FARGATE" ? "ip" : "instance"
+  target_type          = "ip"
 
   health_check {
     interval            = 61

@@ -7,6 +7,11 @@ terraform {
   }
 }
 
+provider "aws" {
+  profile = var.profile
+  region  = var.aws_region
+}
+
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
@@ -51,10 +56,8 @@ resource "aws_ecs_service" "retool" {
   name                               = "${var.deployment_name}-main-service"
   cluster                            = aws_ecs_cluster.this.id
   task_definition                    = aws_ecs_task_definition.retool.arn
-  desired_count                      = var.min_instance_count - 1
   deployment_maximum_percent         = var.maximum_percent
   deployment_minimum_healthy_percent = var.minimum_healthy_percent
-  iam_role                           = var.launch_type == "EC2" ? aws_iam_role.service_role.arn : null
   propagate_tags                     = var.task_propagate_tags
   enable_execute_command             = var.enable_execute_command
 
@@ -71,26 +74,23 @@ resource "aws_ecs_service" "retool" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
 resource "aws_ecs_service" "jobs_runner" {
-  name                   = "${var.deployment_name}-jobs-runner-service"
-  cluster                = aws_ecs_cluster.this.id
-  desired_count          = 1
-  task_definition        = aws_ecs_task_definition.retool_jobs_runner.arn
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  name                               = "${var.deployment_name}-jobs-runner-service"
+  cluster                            = aws_ecs_cluster.this.id
+  # desired_count is set to 1 since the Jobs Runner must be run as a singleton.
+  desired_count                      = 1
+  task_definition                    = aws_ecs_task_definition.retool_jobs_runner.arn
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent         = 100
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -99,27 +99,22 @@ resource "aws_ecs_service" "jobs_runner" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
 resource "aws_ecs_service" "workflows_backend" {
-  count                  = var.workflows_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-workflows-backend-service"
-  cluster                = aws_ecs_cluster.this.id
-  desired_count          = 1
-  task_definition        = aws_ecs_task_definition.retool_workflows_backend[0].arn
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  count                              = var.workflows_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-workflows-backend-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_workflows_backend[0].arn
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
+  deployment_maximum_percent         = var.maximum_percent
+  deployment_minimum_healthy_percent = var.minimum_healthy_percent
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -132,27 +127,22 @@ resource "aws_ecs_service" "workflows_backend" {
     registry_arn = aws_service_discovery_service.retool_workflow_backend_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
 resource "aws_ecs_service" "workflows_worker" {
-  count                  = var.workflows_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-workflows-worker-service"
-  cluster                = aws_ecs_cluster.this.id
-  desired_count          = 1
-  task_definition        = aws_ecs_task_definition.retool_workflows_worker[0].arn
-  propagate_tags         = var.task_propagate_tags
-  enable_execute_command = var.enable_execute_command
+  count                              = var.workflows_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-workflows-worker-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_workflows_worker[0].arn
+  deployment_maximum_percent         = var.maximum_percent
+  deployment_minimum_healthy_percent = var.minimum_healthy_percent
+  propagate_tags                     = var.task_propagate_tags
+  enable_execute_command             = var.enable_execute_command
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -161,26 +151,21 @@ resource "aws_ecs_service" "workflows_worker" {
     capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
 resource "aws_ecs_service" "code_executor" {
-  count                  = var.code_executor_enabled ? 1 : 0
-  name                   = "${var.deployment_name}-code-executor-service"
-  cluster                = aws_ecs_cluster.this.id
-  desired_count          = 1
-  task_definition        = aws_ecs_task_definition.retool_code_executor[0].arn
-  enable_execute_command = var.enable_execute_command
+  count                              = var.code_executor_enabled ? 1 : 0
+  name                               = "${var.deployment_name}-code-executor-service"
+  cluster                            = aws_ecs_cluster.this.id
+  task_definition                    = aws_ecs_task_definition.retool_code_executor[0].arn
+  enable_execute_command             = var.enable_execute_command
+  deployment_maximum_percent         = var.maximum_percent
+  deployment_minimum_healthy_percent = var.minimum_healthy_percent
 
   # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
   capacity_provider_strategy {
@@ -193,16 +178,10 @@ resource "aws_ecs_service" "code_executor" {
     registry_arn = aws_service_discovery_service.retool_code_executor_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
@@ -226,37 +205,32 @@ resource "aws_ecs_service" "telemetry" {
     registry_arn = aws_service_discovery_service.retool_telemetry_service[0].arn
   }
 
-  dynamic "network_configuration" {
-    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
-
-    content {
-      subnets = var.private_subnet_ids
-      security_groups = [
-        aws_security_group.containers.id
-      ]
-      assign_public_ip = true
-    }
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [aws_security_group.containers.id]
+    assign_public_ip = false
   }
 }
 
 resource "aws_ecs_task_definition" "retool_jobs_runner" {
   family                   = "retool-jobs-runner"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["jobs_runner"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["jobs_runner"]["memory"] : null
   container_definitions = jsonencode(concat(
     local.common_containers,
     [
       {
-        name      = "retool-jobs-runner"
-        essential = true
-        image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["jobs_runner"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["jobs_runner"]["memory"] : null
-        command = [
+        name                 = "retool-jobs-runner"
+        essential            = true
+        image                = var.ecs_retool_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["jobs_runner"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["jobs_runner"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["jobs_runner"]["memoryReservation"] : null
+        command              = [
           "./docker_scripts/start_api.sh"
         ]
 
@@ -279,6 +253,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -287,22 +263,23 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
 resource "aws_ecs_task_definition" "retool" {
   family                   = "retool"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["main"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["main"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["main"]["memory"] : null
 
   container_definitions = jsonencode(concat(
     local.common_containers,
     [
       {
-        name      = "retool"
-        essential = true
-        image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["main"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["main"]["memory"] : null
-        command = [
+        name                 = "retool"
+        essential            = true
+        image                = var.ecs_retool_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["main"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["main"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["main"]["memoryReservation"] : null
+        command              = [
           "./docker_scripts/start_api.sh"
         ]
 
@@ -329,6 +306,8 @@ resource "aws_ecs_task_definition" "retool" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -338,22 +317,23 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-backend"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["workflows_backend"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["workflows_backend"]["memory"] : null
 
   container_definitions = jsonencode(concat(
     local.common_containers,
     [
       {
-        name      = "retool-workflows-backend"
-        essential = true
-        image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_backend"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_backend"]["memory"] : null
-        command = [
+        name                 = "retool-workflows-backend"
+        essential            = true
+        image                = var.ecs_retool_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["workflows_backend"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["workflows_backend"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["workflows_backend"]["memoryReservation"] : null
+        command              = [
           "./docker_scripts/start_api.sh"
         ]
 
@@ -380,6 +360,8 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -389,22 +371,23 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   count                    = var.workflows_enabled ? 1 : 0
   family                   = "retool-workflows-worker"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["code_executor"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["code_executor"]["memory"] : null
 
   container_definitions = jsonencode(concat(
     local.common_containers,
     [
       {
-        name      = "retool-workflows-worker"
-        essential = true
-        image     = var.ecs_retool_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_worker"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["workflows_worker"]["memory"] : null
-        command = [
+        name                  = "retool-workflows-worker"
+        essential             = true
+        image                 = var.ecs_retool_image
+        cpu                   = var.launch_type == "EC2" ? var.ec2_task_resource_map["code_executor"]["cpu"] : null
+        memory                = var.launch_type == "EC2" ? var.ec2_task_resource_map["code_executor"]["memory"] : null
+        memoryReservation     = var.launch_type == "EC2" ? var.ec2_task_resource_map["code_executor"]["memoryReservation"] : null
+        command               = [
           "./docker_scripts/start_api.sh"
         ]
 
@@ -435,6 +418,8 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
             }
           ]
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -444,22 +429,23 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
   count                    = var.code_executor_enabled ? 1 : 0
   family                   = "retool-code-executor"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["memory"] : null
 
   container_definitions = jsonencode(concat(
     local.common_containers,
     [
       {
-        name       = "retool-code-executor"
-        essential  = true
-        image      = local.ecs_code_executor_image
-        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        name                 = "retool-code-executor"
+        essential            = true
+        image                = local.ecs_code_executor_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["memoryReservation"] : null
+        user                 = var.launch_type == "EC2" ? null : "1001:1001"
         # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
         # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
         # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
@@ -498,6 +484,8 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
             }
           ] : []
         )
+
+        secrets = local.secrets
       }
     ]
   ))
@@ -507,20 +495,21 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
   count                    = var.telemetry_enabled ? 1 : 0
   family                   = "retool-telemetry"
   task_role_arn            = aws_iam_role.task_role.arn
-  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
-  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
-  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
-  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["telemetry"]["cpu"] : null
-  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["telemetry"]["memory"] : null
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : ["EC2"]
+  network_mode             = "awsvpc"
+  cpu                      = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.fargate_task_resource_map["telemetry"]["memory"] : null
 
   container_definitions = jsonencode(
     [
       {
-        name      = "retool-telemetry"
-        essential = true
-        image     = local.ecs_telemetry_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["telemetry"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["telemetry"]["memory"] : null
+        name                 = "retool-telemetry"
+        essential            = true
+        image                = local.ecs_telemetry_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["telemetry"]["memoryReservation"] : null
         command = [
           "retool-telemetry"
         ]
