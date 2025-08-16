@@ -43,6 +43,12 @@ variable "min_instance_count" {
   default     = 3
 }
 
+variable "associate_public_ip_address" {
+  type        = bool
+  description = "Whether to associate a public IP address with an EC2 instance in a VPC. Defaults to true."
+  default     = true
+}
+
 variable "deployment_name" {
   type        = string
   description = "Name prefix for created resources. Defaults to `retool`."
@@ -121,6 +127,18 @@ variable "rds_multi_az" {
   description = "Whether the RDS instance should have Multi-AZ enabled. Defaults to false."
 }
 
+variable "rds_backup_retention_period" {
+  type        = number
+  default     = null
+  description = "The number of days to retain backups for. Must be between 0 and 35."
+}
+
+variable "rds_backup_window" {
+  type        = string
+  default     = null
+  description = "The daily time range (in UTC) during which automated backups are created if automated backups are enabled."
+}
+
 variable "log_retention_in_days" {
   type        = number
   default     = 14
@@ -137,6 +155,12 @@ variable "cookie_insecure" {
   type        = bool
   default     = true
   description = "Whether to allow insecure cookies. Should be turned off when serving on HTTPS. Defaults to true."
+}
+
+variable "alb_internal" {
+  type        = bool
+  default     = false
+  description = "Whether to create an internal load balancer. Defaults to false."
 }
 
 variable "maximum_percent" {

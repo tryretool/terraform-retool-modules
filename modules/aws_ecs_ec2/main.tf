@@ -42,7 +42,7 @@ resource "aws_launch_configuration" "this" {
   instance_type = var.instance_type # e.g. t2.medium
 
   enable_monitoring           = true
-  associate_public_ip_address = true
+  associate_public_ip_address = var.associate_public_ip_address
 
   # This user data represents a collection of “scripts” that will be executed the first time the machine starts.
   # This specific example makes sure the EC2 instance is automatically attached to the ECS cluster that we create earlier
@@ -157,6 +157,8 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids       = [aws_security_group.rds.id]
   performance_insights_enabled = var.rds_performance_insights_enabled
   multi_az                     = var.rds_multi_az
+  backup_retention_period      = var.rds_backup_retention_period
+  backup_window                = var.rds_backup_window
   
   skip_final_snapshot          = true
   apply_immediately           = true
