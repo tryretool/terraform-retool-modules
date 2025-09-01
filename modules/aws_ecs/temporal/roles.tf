@@ -73,5 +73,5 @@ resource "aws_iam_role" "execution_role" {
 resource "aws_iam_role_policy_attachment" "execution_role" {
   count      = var.launch_type == "FARGATE" ? 1 : 0
   role       = aws_iam_role.execution_role[0].name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  policy_arn = "arn:${var.iam_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }

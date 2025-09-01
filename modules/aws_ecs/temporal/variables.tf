@@ -210,3 +210,9 @@ variable "service_discovery_namespace" {
   type        = string
   description = "Service discovery namespace DNS name for Retool ECS cluster."
 }
+
+variable "iam_partition" {
+  type        = string
+  description = "AWS Commercial accounts use 'aws'. AWS GovCloud accounts use 'aws-us-gov'"
+  default     = "aws"
+}
