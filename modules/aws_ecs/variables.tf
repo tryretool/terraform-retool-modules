@@ -364,7 +364,7 @@ variable "temporal_aurora_instances" {
 variable "temporal_image" {
   type        = string
   description = "Docker image for Temporal"
-  default     = "tryretool/one-offs:retool-temporal-1.1.6"
+  default     = "tryretool/one-offs:retool-temporal-1.1.5"
 }
 
 variable "workflows_enabled" {
