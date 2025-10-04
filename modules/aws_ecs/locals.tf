@@ -24,7 +24,6 @@ locals {
   ecs_telemetry_fluentbit_image = var.ecs_telemetry_fluentbit_image != "" ? var.ecs_telemetry_fluentbit_image : format("%s:%s", "tryretool/retool-aws-for-fluent-bit", split(":", var.ecs_retool_image)[1])
 
   environment_variables = concat(
-    var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
     local.temporal_mtls_config,
     var.code_executor_enabled ? [
@@ -109,7 +108,8 @@ locals {
         "name" : "WORKFLOW_TEMPORAL_TLS_ENABLED",
         "value" : tostring(var.temporal_cluster_config.tls_enabled)
       }
-    ]
+    ],
+    var.additional_env_vars, # add additional environment variables after defaults so they can override when necessary
   )
 
   task_log_configuration = (

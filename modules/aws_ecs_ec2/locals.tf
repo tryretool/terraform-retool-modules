@@ -1,6 +1,5 @@
 locals {
   environment_variables = concat(
-    var.additional_env_vars, # add additional environment variables
     [
       {
         name  = "NODE_ENV"
@@ -50,6 +49,7 @@ locals {
         "name": "DEPLOYMENT_TEMPLATE_TYPE"
         "value": "aws-ecs-ec2-terraform-deprecated"
       }
-    ]
+    ],
+    var.additional_env_vars, # add additional environment variables if provided so they can override defaults
   )
 }
