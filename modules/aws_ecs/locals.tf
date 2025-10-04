@@ -26,13 +26,6 @@ locals {
   environment_variables = concat(
     var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
-    local.temporal_mtls_config,
-    var.code_executor_enabled ? [
-      {
-        name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
-        value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
-      }
-    ] : [],
     var.telemetry_enabled ? [
       {
         name  = "RTEL_ENABLED"
@@ -73,26 +66,25 @@ locals {
         "value" = var.rds_username
       },
       {
-        "name"  = "POSTGRES_PASSWORD",
-        "value" = random_string.rds_password.result
-      },
-      {
-        "name" : "JWT_SECRET",
-        "value" : random_string.jwt_secret.result
-      },
-      {
-        "name" : "ENCRYPTION_KEY",
-        "value" : random_string.encryption_key.result
-      },
-      {
         "name" : "LICENSE_KEY",
         "value" : var.retool_license_key
       },
-      # Workflows-specific
+    # WORKFLOW_BACKEND_HOST and CODE_EXECUTOR_INGRESS_DOMAIN are workflows-specific services
       {
         "name" : "WORKFLOW_BACKEND_HOST",
         "value" : format("http://workflow-backend.%s:3000", local.service_discovery_namespace)
-      },
+      }
+    ],
+        var.code_executor_enabled ? [
+      {
+        name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
+        value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
+      }
+    ] : [],
+    # The section below is only needed if deploying Temporal locally from this template. 
+    # Retool strongly reccommends using the Retool Managed Temporal option instead.
+    local.temporal_mtls_config, 
+    var.use_existing_temporal_cluster ? [] : [
       {
         "name" : "WORKFLOW_TEMPORAL_CLUSTER_NAMESPACE",
         "value" : var.temporal_cluster_config.namespace
@@ -108,6 +100,24 @@ locals {
       {
         "name" : "WORKFLOW_TEMPORAL_TLS_ENABLED",
         "value" : tostring(var.temporal_cluster_config.tls_enabled)
+      }
+    ]
+  )
+
+  secrets = concat(
+    var.additional_secrets,
+    [
+      {
+        name = "POSTGRES_PASSWORD",
+        valueFrom = aws_secretsmanager_secret.rds_password.arn
+      },
+      {
+        name      = "JWT_SECRET",
+        valueFrom = aws_secretsmanager_secret.jwt_secret.arn
+      },
+      {
+        name    = "ENCRYPTION_KEY",
+        valueFrom   = aws_secretsmanager_secret.encryption_key.arn
       }
     ]
   )
@@ -136,11 +146,12 @@ locals {
   common_containers = (
     var.telemetry_enabled ? [
       {
-        name      = "retool-fluentbit"
-        essential = true
-        image     = var.ecs_telemetry_fluentbit_image
-        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["cpu"] : null
-        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["memory"] : null
+        name                 = "retool-fluentbit"
+        essential            = true
+        image                = var.ecs_telemetry_fluentbit_image
+        cpu                  = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["cpu"] : null
+        memory               = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["memory"] : null
+        memoryReservation    = var.launch_type == "EC2" ? var.ec2_task_resource_map["fluentbit"]["memory"] : null
 
         firelensConfiguration = {
           type    = "fluentbit"
