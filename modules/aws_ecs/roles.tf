@@ -18,11 +18,11 @@ data "aws_iam_policy_document" "task_role_policy" {
       "ssmmessages:OpenDataChannel",
     ]
     resources = ["*"]
-  },
+  }
   statement {
     sid = "AssumeRetoolRoleDev"
     actions = [
-       "sts:AssumeRole"
+      "sts:AssumeRole"
     ]
     resources = ["arn:aws:iam::075586449163:role/ReToolAccessManagementRole"]
   }
