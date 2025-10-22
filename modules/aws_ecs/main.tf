@@ -21,6 +21,7 @@ resource "aws_db_subnet_group" "this" {
   subnet_ids = var.private_subnet_ids
 }
 
+
 resource "aws_db_instance" "this" {
   identifier                   = "${var.deployment_name}-rds-instance"
   allocated_storage            = var.rds_allocated_storage
@@ -30,6 +31,7 @@ resource "aws_db_instance" "this" {
   engine_version               = var.rds_instance_engine_version
   auto_minor_version_upgrade   = var.rds_instance_auto_minor_version_upgrade
   db_name                      = "hammerhead_production"
+  deletion_protection          = var.rds_instance_deletion_protection
   username                     = aws_secretsmanager_secret_version.rds_username.secret_string
   password                     = aws_secretsmanager_secret_version.rds_password.secret_string
   port                         = 5432

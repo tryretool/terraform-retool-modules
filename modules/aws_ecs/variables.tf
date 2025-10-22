@@ -73,6 +73,12 @@ variable "retool_license_key" {
   default     = "EXPIRED-LICENSE-KEY-TRIAL"
 }
 
+variable "rds_instance_deletion_protection" {
+  type        = bool
+  default     = false
+  description = "Whether to enable deletion protection for RDS instance. Defaults to false."
+}
+
 variable "ecs_retool_image" {
   type        = string
   description = "Container image for desired Retool version. Defaults to `3.114.2-stable`"
