@@ -42,6 +42,8 @@ resource "aws_db_instance" "this" {
   storage_throughput           = var.rds_storage_throughput
   iops                         = var.rds_iops
   multi_az                     = var.rds_multi_az
+  backup_retention_period      = var.rds_backup_retention_period
+  backup_window                = var.rds_backup_window
 
   skip_final_snapshot = true
   apply_immediately   = true
