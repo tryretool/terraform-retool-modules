@@ -101,6 +101,6 @@ resource "aws_instance" "this" {
   ./install.sh
 
   # Run services
-  docker-compose up -d
+  docker compose up -d
   EOF
 }

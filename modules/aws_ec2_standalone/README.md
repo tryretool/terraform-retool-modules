@@ -50,7 +50,7 @@ cd /retool-onpremise
 vim Dockerfile
 ```
 
-7. Verify that all of the Docker containers are up and running. If one of them is not running or restarting, try re-creating the containers with (`docker-compose up -d`)
+7. Verify that all of the Docker containers are up and running. If one of them is not running or restarting, try re-creating the containers with (`docker compose up -d`)
 
 ```
 docker-ps
