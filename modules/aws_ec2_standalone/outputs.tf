@@ -17,3 +17,13 @@ output "ec2_public_ip" {
   value       = aws_instance.this.public_ip
   description = "Public IP of EC2 Instance"
 }
+
+output "ec2_security_group_arn" {
+  value       = aws_security_group.this.arn
+  description = "Security Group arn for EC2 instance"
+}
+
+output "ec2_security_group_id" {
+  value       = aws_security_group.this.id
+  description = "Security Group ID for EC2 instance"
+}
