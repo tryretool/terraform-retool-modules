@@ -93,7 +93,7 @@ resource "aws_ecs_service" "retool_temporal" {
       security_groups = [
         var.container_sg_id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -153,7 +153,17 @@ resource "aws_ecs_task_definition" "retool_temporal" {
             "value" : "${var.temporal_cluster_config.hostname}.${var.service_discovery_namespace}:${var.temporal_cluster_config.port}"
             }
           ] : []
-        )
+        ),
+        secrets = [
+          {
+            name      = "POSTGRES_USER",
+            valueFrom = aws_secretsmanager_secret.temporal_aurora_username.arn
+          },
+          {
+            name      = "POSTGRES_PASSWORD",
+            valueFrom = aws_secretsmanager_secret.temporal_aurora_password.arn
+          }
+        ]
       }
     ]
   )

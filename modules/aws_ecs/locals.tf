@@ -23,10 +23,48 @@ locals {
   // Use var.ecs_telemetry_fluentbit_image if defined, otherwise fallback to the same tag as var.ecs_retool_image
   ecs_telemetry_fluentbit_image = var.ecs_telemetry_fluentbit_image != "" ? var.ecs_telemetry_fluentbit_image : format("%s:%s", "tryretool/retool-aws-for-fluent-bit", split(":", var.ecs_retool_image)[1])
 
+  secret_environment_variables = concat(
+    [
+      {
+        name      = "POSTGRES_USER"
+        valueFrom = aws_secretsmanager_secret.rds_username.arn
+      },
+      {
+        name      = "POSTGRES_PASSWORD"
+        valueFrom = aws_secretsmanager_secret.rds_password.arn
+      },
+      {
+        name      = "JWT_SECRET"
+        valueFrom = aws_secretsmanager_secret.jwt_secret.arn
+      },
+      {
+        name      = "ENCRYPTION_KEY"
+        valueFrom = aws_secretsmanager_secret.encryption_key.arn
+      }
+    ],
+    var.retool_license_key != "" ? [
+      {
+        name      = "LICENSE_KEY"
+        valueFrom = aws_secretsmanager_secret.retool_license_key[0].arn
+      }
+    ] : [],
+    var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null ? [
+      {
+        name      = "WORKFLOW_TEMPORAL_TLS_CRT"
+        valueFrom = aws_secretsmanager_secret.temporal_tls_crt[0].arn
+      }
+    ] : [],
+    var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_key != null ? [
+      {
+        name      = "WORKFLOW_TEMPORAL_TLS_KEY"
+        valueFrom = aws_secretsmanager_secret.temporal_tls_key[0].arn
+      }
+    ] : []
+  )
+
   environment_variables = concat(
     var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
-    local.temporal_mtls_config,
     var.code_executor_enabled ? [
       {
         name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
@@ -68,26 +106,6 @@ locals {
         name  = "POSTGRES_PORT"
         value = "5432"
       },
-      {
-        "name"  = "POSTGRES_USER",
-        "value" = var.rds_username
-      },
-      {
-        "name"  = "POSTGRES_PASSWORD",
-        "value" = random_string.rds_password.result
-      },
-      {
-        "name" : "JWT_SECRET",
-        "value" : random_string.jwt_secret.result
-      },
-      {
-        "name" : "ENCRYPTION_KEY",
-        "value" : random_string.encryption_key.result
-      },
-      {
-        "name" : "LICENSE_KEY",
-        "value" : var.retool_license_key
-      },
       # Workflows-specific
       {
         "name" : "WORKFLOW_BACKEND_HOST",
@@ -123,7 +141,7 @@ locals {
         auto_create_group = "true"
         log_stream_prefix = "SERVICE_RETOOL/"
       }
-    } : {
+      } : {
       logDriver = "awslogs"
       options = {
         awslogs-group         = aws_cloudwatch_log_group.this.id
@@ -143,7 +161,7 @@ locals {
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["memory"] : null
 
         firelensConfiguration = {
-          type    = "fluentbit"
+          type = "fluentbit"
           options = {
             config-file-type  = "file"
             config-file-value = "/extra.conf"
@@ -152,7 +170,7 @@ locals {
 
         logConfiguration = {
           logDriver = "awslogs"
-          options   = {
+          options = {
             awslogs-group         = aws_cloudwatch_log_group.this.id
             awslogs-region        = var.aws_region
             awslogs-stream-prefix = "SERVICE_RETOOL"
@@ -170,20 +188,5 @@ locals {
         ]
       }
     ] : []
-  )
-
-  temporal_mtls_config = (
-    var.temporal_cluster_config.tls_enabled && var.temporal_cluster_config.tls_crt != null && var.temporal_cluster_config.tls_key != null ?
-    [
-      {
-        "name" : "WORKFLOW_TEMPORAL_TLS_CRT",
-        "value" : var.temporal_cluster_config.tls_crt
-      },
-      {
-        "name" : "WORKFLOW_TEMPORAL_TLS_KEY",
-        "value" : var.temporal_cluster_config.tls_key
-      }
-    ] :
-    []
   )
 }

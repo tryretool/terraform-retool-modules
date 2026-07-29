@@ -93,6 +93,28 @@ resource "aws_iam_role_policy_attachment" "execution_role" {
   policy_arn = "arn:${var.iam_partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_iam_policy_document" "execution_role_secrets_policy" {
+  count = var.launch_type == "FARGATE" ? 1 : 0
+  statement {
+    actions = [
+      "secretsmanager:GetSecretValue",
+    ]
+    resources = [for secret in local.secret_environment_variables : secret.valueFrom]
+  }
+}
+
+resource "aws_iam_policy" "execution_role_secrets_policy" {
+  count  = var.launch_type == "FARGATE" ? 1 : 0
+  name   = "${var.deployment_name}-execution-role-secrets-policy"
+  policy = data.aws_iam_policy_document.execution_role_secrets_policy[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "execution_role_secrets" {
+  count      = var.launch_type == "FARGATE" ? 1 : 0
+  role       = aws_iam_role.execution_role[0].name
+  policy_arn = aws_iam_policy.execution_role_secrets_policy[0].arn
+}
+
 # IAM Role for EC2 instances
 resource "aws_iam_instance_profile" "ec2" {
   count = var.launch_type == "EC2" ? 1 : 0

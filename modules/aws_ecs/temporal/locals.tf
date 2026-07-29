@@ -23,14 +23,6 @@ locals {
         "value": tostring(module.temporal_aurora_rds.cluster_port)
       },
       {
-        "name": "POSTGRES_USER",
-        "value": var.temporal_aurora_username
-      },
-      {
-        "name": "POSTGRES_PASSWORD",
-        "value": random_string.temporal_aurora_password.result
-      },
-      {
         "name": "DBNAME",
         "value": "temporal"
       },

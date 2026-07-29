@@ -81,7 +81,7 @@ resource "aws_ecs_service" "retool" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -109,7 +109,7 @@ resource "aws_ecs_service" "jobs_runner" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -142,7 +142,7 @@ resource "aws_ecs_service" "workflows_backend" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -171,7 +171,7 @@ resource "aws_ecs_service" "workflows_worker" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -203,7 +203,7 @@ resource "aws_ecs_service" "code_executor" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -236,7 +236,7 @@ resource "aws_ecs_service" "telemetry" {
       security_groups = [
         aws_security_group.containers.id
       ]
-      assign_public_ip = true
+      assign_public_ip = var.assign_public_ip
     }
   }
 }
@@ -280,7 +280,8 @@ resource "aws_ecs_task_definition" "retool_jobs_runner" {
               value = "JOBS_RUNNER"
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -330,7 +331,8 @@ resource "aws_ecs_task_definition" "retool" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -381,7 +383,8 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -436,7 +439,8 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
               "value" = tostring(var.cookie_insecure)
             }
           ]
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   ))
@@ -456,12 +460,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
     local.common_containers,
     [
       {
-        name       = "retool-code-executor"
-        essential  = true
-        image      = local.ecs_code_executor_image
-        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        name      = "retool-code-executor"
+        essential = true
+        image     = local.ecs_code_executor_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user      = var.launch_type == "EC2" ? null : "1001:1001"
         # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
         # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
         # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
@@ -488,7 +492,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           local.base_environment_variables,
           [
             {
-              name = "NODE_OPTIONS",
+              name  = "NODE_OPTIONS",
               value = "--max_old_space_size=1024"
             }
           ],
@@ -582,7 +586,8 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
               value = base64encode(file(var.telemetry_custom_config_path))
             }
           ] : []
-        )
+        ),
+        secrets = local.secret_environment_variables
       }
     ]
   )
@@ -637,7 +642,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 
 resource "aws_service_discovery_service" "retool_telemetry_service" {
   count = var.telemetry_enabled ? 1 : 0
-  name = "telemetry"
+  name  = "telemetry"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
@@ -704,5 +709,6 @@ module "temporal" {
   aws_ecs_capacity_provider_name               = var.launch_type == "EC2" ? aws_ecs_capacity_provider.this[0].name : null
   task_propagate_tags                          = var.task_propagate_tags
   service_discovery_namespace                  = local.service_discovery_namespace
+  assign_public_ip                             = var.assign_public_ip
   iam_partition                                = var.iam_partition
 }
