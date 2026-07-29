@@ -11,6 +11,10 @@ locals {
     {
       name  = "DEPLOYMENT_TEMPLATE_TYPE"
       value = var.launch_type == "FARGATE" ? "aws-ecs-fargate-terraform" : "aws-ecs-ec2-terraform"
+    },
+    {
+      name  = "BASE_DOMAIN"
+      value = var.base_domain
     }
   ]
 
@@ -27,7 +31,7 @@ locals {
     var.additional_env_vars, # add additional environment variables
     local.base_environment_variables,
     local.temporal_mtls_config,
-    var.code_executor_enabled ? [
+    (var.code_executor_enabled || var.workflows_enabled || var.agents_enabled) ? [
       {
         name  = "CODE_EXECUTOR_INGRESS_DOMAIN"
         value = format("http://code-executor.%s:3004", local.service_discovery_namespace)
@@ -123,7 +127,7 @@ locals {
         auto_create_group = "true"
         log_stream_prefix = "SERVICE_RETOOL/"
       }
-    } : {
+      } : {
       logDriver = "awslogs"
       options = {
         awslogs-group         = aws_cloudwatch_log_group.this.id
@@ -143,7 +147,7 @@ locals {
         memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["fluentbit"]["memory"] : null
 
         firelensConfiguration = {
-          type    = "fluentbit"
+          type = "fluentbit"
           options = {
             config-file-type  = "file"
             config-file-value = "/extra.conf"
@@ -152,7 +156,7 @@ locals {
 
         logConfiguration = {
           logDriver = "awslogs"
-          options   = {
+          options = {
             awslogs-group         = aws_cloudwatch_log_group.this.id
             awslogs-region        = var.aws_region
             awslogs-stream-prefix = "SERVICE_RETOOL"

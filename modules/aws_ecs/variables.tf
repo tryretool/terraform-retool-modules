@@ -73,16 +73,21 @@ variable "retool_license_key" {
   default     = "EXPIRED-LICENSE-KEY-TRIAL"
 }
 
+variable "base_domain" {
+  type        = string
+  description = "Base domain URL for the deployment (e.g., https://retool.example.com or http://retool-alb-123.region.elb.amazonaws.com). Required by Retool backend at startup."
+}
+
 variable "ecs_retool_image" {
   type        = string
-  description = "Container image for desired Retool version. Defaults to `3.114.2-stable`"
-  default     = "tryretool/backend:3.114.2-stable"
+  description = "Container image for desired Retool version. Defaults to `3.253.8-stable`"
+  default     = "tryretool/backend:3.253.8-stable"
 }
 
 variable "ecs_code_executor_image" {
   type        = string
-  description = "Container image for desired code_executor version. Defaults to `3.114.2-stable`"
-  default     = "tryretool/code-executor-service:3.114.2-stable"
+  description = "Container image for desired code_executor version. Defaults to ecs_retool_image if not specified."
+  default     = ""
 }
 
 variable "ecs_telemetry_image" {
@@ -120,6 +125,14 @@ variable "ecs_task_resource_map" {
       memory = 4096
     }
     code_executor = {
+      cpu    = 2048
+      memory = 4096
+    }
+    agent_worker = {
+      cpu    = 2048
+      memory = 4096
+    }
+    agent_eval_worker = {
       cpu    = 2048
       memory = 4096
     }
@@ -376,7 +389,7 @@ variable "temporal_aurora_instances" {
 variable "temporal_image" {
   type        = string
   description = "Docker image for Temporal"
-  default     = "tryretool/one-offs:retool-temporal-1.1.5"
+  default     = "tryretool/one-offs:retool-temporal-1.1.6"
 }
 
 variable "workflows_enabled" {
@@ -389,6 +402,12 @@ variable "code_executor_enabled" {
   type        = bool
   default     = false
   description = "Whether to enable code_executor service to support Python execution. Defaults to false."
+}
+
+variable "agents_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable agents. Defaults to false."
 }
 
 variable "telemetry_enabled" {

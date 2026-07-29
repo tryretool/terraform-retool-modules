@@ -115,7 +115,7 @@ resource "aws_ecs_service" "jobs_runner" {
 }
 
 resource "aws_ecs_service" "workflows_backend" {
-  count                  = var.workflows_enabled ? 1 : 0
+  count                  = (var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name                   = "${var.deployment_name}-workflows-backend-service"
   cluster                = aws_ecs_cluster.this.id
   desired_count          = 1
@@ -148,7 +148,7 @@ resource "aws_ecs_service" "workflows_backend" {
 }
 
 resource "aws_ecs_service" "workflows_worker" {
-  count                  = var.workflows_enabled ? 1 : 0
+  count                  = (var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name                   = "${var.deployment_name}-workflows-worker-service"
   cluster                = aws_ecs_cluster.this.id
   desired_count          = 1
@@ -177,7 +177,7 @@ resource "aws_ecs_service" "workflows_worker" {
 }
 
 resource "aws_ecs_service" "code_executor" {
-  count                  = var.code_executor_enabled ? 1 : 0
+  count                  = (var.code_executor_enabled || var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name                   = "${var.deployment_name}-code-executor-service"
   cluster                = aws_ecs_cluster.this.id
   desired_count          = 1
@@ -226,6 +226,64 @@ resource "aws_ecs_service" "telemetry" {
 
   service_registries {
     registry_arn = aws_service_discovery_service.retool_telemetry_service[0].arn
+  }
+
+  dynamic "network_configuration" {
+    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
+
+    content {
+      subnets = var.private_subnet_ids
+      security_groups = [
+        aws_security_group.containers.id
+      ]
+      assign_public_ip = true
+    }
+  }
+}
+
+resource "aws_ecs_service" "agent_worker" {
+  count                  = var.agents_enabled ? 1 : 0
+  name                   = "${var.deployment_name}-agent-worker-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_agent_worker[0].arn
+  propagate_tags         = var.task_propagate_tags
+  enable_execute_command = var.enable_execute_command
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
+  }
+
+  dynamic "network_configuration" {
+    for_each = var.launch_type == "FARGATE" ? toset([1]) : toset([])
+
+    content {
+      subnets = var.private_subnet_ids
+      security_groups = [
+        aws_security_group.containers.id
+      ]
+      assign_public_ip = true
+    }
+  }
+}
+
+resource "aws_ecs_service" "agent_eval_worker" {
+  count                  = var.agents_enabled ? 1 : 0
+  name                   = "${var.deployment_name}-agent-eval-worker-service"
+  cluster                = aws_ecs_cluster.this.id
+  desired_count          = 1
+  task_definition        = aws_ecs_task_definition.retool_agent_eval_worker[0].arn
+  propagate_tags         = var.task_propagate_tags
+  enable_execute_command = var.enable_execute_command
+
+  # Need to explictly set this in aws_ecs_service to avoid destructive behavior: https://github.com/hashicorp/terraform-provider-aws/issues/22823
+  capacity_provider_strategy {
+    base              = 1
+    weight            = 100
+    capacity_provider = var.launch_type == "FARGATE" ? "FARGATE" : aws_ecs_capacity_provider.this[0].name
   }
 
   dynamic "network_configuration" {
@@ -337,7 +395,7 @@ resource "aws_ecs_task_definition" "retool" {
 }
 
 resource "aws_ecs_task_definition" "retool_workflows_backend" {
-  count                    = var.workflows_enabled ? 1 : 0
+  count                    = (var.workflows_enabled || var.agents_enabled) ? 1 : 0
   family                   = "retool-workflows-backend"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
@@ -388,7 +446,7 @@ resource "aws_ecs_task_definition" "retool_workflows_backend" {
 }
 
 resource "aws_ecs_task_definition" "retool_workflows_worker" {
-  count                    = var.workflows_enabled ? 1 : 0
+  count                    = (var.workflows_enabled || var.agents_enabled) ? 1 : 0
   family                   = "retool-workflows-worker"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
@@ -442,8 +500,126 @@ resource "aws_ecs_task_definition" "retool_workflows_worker" {
   ))
 }
 
+resource "aws_ecs_task_definition" "retool_agent_worker" {
+  count                    = var.agents_enabled ? 1 : 0
+  family                   = "retool-agent-worker"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["agent_worker"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["agent_worker"]["memory"] : null
+
+  container_definitions = jsonencode(concat(
+    local.common_containers,
+    [
+      {
+        name      = "retool-agent-worker"
+        essential = true
+        image     = var.ecs_retool_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["agent_worker"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["agent_worker"]["memory"] : null
+        command = [
+          "./docker_scripts/start_api.sh"
+        ]
+
+        logConfiguration = local.task_log_configuration
+
+        portMappings = [
+          {
+            containerPort = 3005
+            hostPort      = 3005
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = concat(
+          local.environment_variables,
+          [
+            {
+              name  = "SERVICE_TYPE"
+              value = "WORKFLOW_TEMPORAL_WORKER"
+            },
+            {
+              name  = "WORKER_TEMPORAL_TASKQUEUE"
+              value = "agent"
+            },
+            {
+              name  = "NODE_OPTIONS"
+              value = "--max_old_space_size=1024"
+            },
+            {
+              "name"  = "COOKIE_INSECURE",
+              "value" = tostring(var.cookie_insecure)
+            }
+          ]
+        )
+      }
+    ]
+  ))
+}
+
+resource "aws_ecs_task_definition" "retool_agent_eval_worker" {
+  count                    = var.agents_enabled ? 1 : 0
+  family                   = "retool-agent-eval-worker"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
+  requires_compatibilities = var.launch_type == "FARGATE" ? ["FARGATE"] : null
+  network_mode             = var.launch_type == "FARGATE" ? "awsvpc" : "bridge"
+  cpu                      = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["agent_eval_worker"]["cpu"] : null
+  memory                   = var.launch_type == "FARGATE" ? var.ecs_task_resource_map["agent_eval_worker"]["memory"] : null
+
+  container_definitions = jsonencode(concat(
+    local.common_containers,
+    [
+      {
+        name      = "retool-agent-eval-worker"
+        essential = true
+        image     = var.ecs_retool_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["agent_eval_worker"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["agent_eval_worker"]["memory"] : null
+        command = [
+          "./docker_scripts/start_api.sh"
+        ]
+
+        logConfiguration = local.task_log_configuration
+
+        portMappings = [
+          {
+            containerPort = 3005
+            hostPort      = 3005
+            protocol      = "tcp"
+          }
+        ]
+
+        environment = concat(
+          local.environment_variables,
+          [
+            {
+              name  = "SERVICE_TYPE"
+              value = "AGENT_EVAL_TEMPORAL_WORKER"
+            },
+            {
+              name  = "WORKER_TEMPORAL_TASKQUEUE"
+              value = "agent-eval"
+            },
+            {
+              name  = "NODE_OPTIONS"
+              value = "--max_old_space_size=1024"
+            },
+            {
+              "name"  = "COOKIE_INSECURE",
+              "value" = tostring(var.cookie_insecure)
+            }
+          ]
+        )
+      }
+    ]
+  ))
+}
+
 resource "aws_ecs_task_definition" "retool_code_executor" {
-  count                    = var.code_executor_enabled ? 1 : 0
+  count                    = (var.code_executor_enabled || var.workflows_enabled || var.agents_enabled) ? 1 : 0
   family                   = "retool-code-executor"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = var.launch_type == "FARGATE" ? aws_iam_role.execution_role[0].arn : null
@@ -456,12 +632,12 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
     local.common_containers,
     [
       {
-        name       = "retool-code-executor"
-        essential  = true
-        image      = local.ecs_code_executor_image
-        cpu        = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
-        memory     = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
-        user       = var.launch_type == "EC2" ? null : "1001:1001"
+        name      = "retool-code-executor"
+        essential = true
+        image     = local.ecs_code_executor_image
+        cpu       = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["cpu"] : null
+        memory    = var.launch_type == "EC2" ? var.ecs_task_resource_map["code_executor"]["memory"] : null
+        user      = var.launch_type == "EC2" ? null : "1001:1001"
         # required to use nsjail sandboxing, which is required for custom libraries for JS and Python
         # Learn more here: https://docs.retool.com/self-hosted/concepts/architecture#code-executor
         # If not using nsjail sandboxing, update this to be false and use user = "1001:1001"
@@ -488,7 +664,7 @@ resource "aws_ecs_task_definition" "retool_code_executor" {
           local.base_environment_variables,
           [
             {
-              name = "NODE_OPTIONS",
+              name  = "NODE_OPTIONS",
               value = "--max_old_space_size=1024"
             }
           ],
@@ -589,14 +765,14 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "retool_namespace" {
-  count       = (var.code_executor_enabled || var.telemetry_enabled || var.workflows_enabled) ? 1 : 0
+  count       = (var.code_executor_enabled || var.telemetry_enabled || var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name        = local.service_discovery_namespace
   description = "Service Discovery namespace for Retool deployment"
   vpc         = var.vpc_id
 }
 
 resource "aws_service_discovery_service" "retool_workflow_backend_service" {
-  count = var.workflows_enabled ? 1 : 0
+  count = (var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name  = "workflow-backend"
 
   dns_config {
@@ -616,7 +792,7 @@ resource "aws_service_discovery_service" "retool_workflow_backend_service" {
 }
 
 resource "aws_service_discovery_service" "retool_code_executor_service" {
-  count = var.code_executor_enabled ? 1 : 0
+  count = (var.code_executor_enabled || var.workflows_enabled || var.agents_enabled) ? 1 : 0
   name  = "code-executor"
 
   dns_config {
@@ -637,7 +813,7 @@ resource "aws_service_discovery_service" "retool_code_executor_service" {
 
 resource "aws_service_discovery_service" "retool_telemetry_service" {
   count = var.telemetry_enabled ? 1 : 0
-  name = "telemetry"
+  name  = "telemetry"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.retool_namespace[0].id
@@ -656,7 +832,7 @@ resource "aws_service_discovery_service" "retool_telemetry_service" {
 }
 
 module "temporal" {
-  count                       = var.workflows_enabled && !var.use_existing_temporal_cluster ? 1 : 0
+  count                       = (var.workflows_enabled || var.agents_enabled) && !var.use_existing_temporal_cluster ? 1 : 0
   source                      = "./temporal"
   deployment_name             = "${var.deployment_name}-temporal"
   vpc_id                      = var.vpc_id
