@@ -574,6 +574,10 @@ resource "aws_ecs_task_definition" "retool_telemetry" {
             {
               name  = "RTEL_SEND_TO_RETOOL"
               value = tostring(var.telemetry_send_to_retool)
+            },
+            {
+              name  = "RTEL_SEND_TO_RETOOL_INPUT_ALLOWLIST"
+              value = join(",", var.telemetry_send_to_retool_inputs)
             }
           ],
           var.telemetry_use_custom_config ? [

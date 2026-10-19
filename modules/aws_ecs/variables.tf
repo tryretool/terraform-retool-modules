@@ -393,7 +393,7 @@ variable "code_executor_enabled" {
 
 variable "telemetry_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to enable on-prem telemetry. Defaults to false."
 }
 
@@ -401,6 +401,12 @@ variable "telemetry_send_to_retool" {
   type        = bool
   default     = true
   description = "Whether to send telemetry data to Retool. Defaults to true."
+}
+
+variable "telemetry_send_to_retool_inputs" {
+  type        = list(string)
+  default     = ["metrics"]
+  description = "Which telemetry inputs to send to Retool. Valid inputs are 'container_logs', 'metrics', 'otlp_traces'. Defaults to ['metrics']."
 }
 
 variable "telemetry_use_custom_config" {
